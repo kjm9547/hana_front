@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'api.dart';
+import 'chat.dart';
 import 'main.dart' show AuthScreen;
 import 'theme.dart';
 import 'widgets.dart';
@@ -35,6 +38,18 @@ class _HomeShellState extends State<HomeShell> {
     return (me as Map, page['items'] as List, phrase as Map);
   }
 
+  @override
+  void initState() {
+    super.initState();
+    ChatSocket.connect();
+  }
+
+  @override
+  void dispose() {
+    ChatSocket.disconnect(); // 로그아웃하면 이 화면이 사라지면서 끊긴다
+    super.dispose();
+  }
+
   void _go(int tab) => setState(() => _tab = tab);
 
   @override
@@ -52,7 +67,7 @@ class _HomeShellState extends State<HomeShell> {
               index: _tab,
               children: [
                 _MainTab(me: me, partners: partners, phrase: phrase),
-                _ChatsTab(onFindFriends: () => _go(0)),
+                _ChatsTab(meId: me['id'], onFindFriends: () => _go(0)),
                 _MatchTab(me: me),
                 const _BoardTab(),
                 _ProfileTab(me: me, onChanged: () => setState(() => _data = _load())),
@@ -169,28 +184,131 @@ class _MainTab extends StatelessWidget {
       if (partners.isEmpty)
         const EmptyState(title: '아직 친구가 없어요', subtitle: '새 친구가 가입하면 여기에 보여요')
       else
-        for (final (i, p) in partners.indexed) ...[if (i > 0) _rowDivider, PersonRow(person: p)],
+        for (final (i, p) in partners.indexed) ...[
+          if (i > 0) _rowDivider,
+          PersonRow(person: p, onTap: () => openChat(context, partner: p, meId: me['id'])),
+        ],
     ],
   );
 }
 
 // ───────────────────────── 대화방 ─────────────────────────
 
-class _ChatsTab extends StatelessWidget {
-  const _ChatsTab({required this.onFindFriends});
+class _ChatsTab extends StatefulWidget {
+  const _ChatsTab({required this.meId, required this.onFindFriends});
+  final int meId;
   final VoidCallback onFindFriends;
 
   @override
-  Widget build(BuildContext context) => _TabPage(
-    title: '대화방',
-    children: [
-      EmptyState(
-        title: '아직 대화가 없어요',
-        subtitle: '메인에서 친구를 골라 첫 인사를 건네보세요',
-        action: ShadButton.outline(onPressed: onFindFriends, child: const Text('친구 찾기')),
+  State<_ChatsTab> createState() => _ChatsTabState();
+}
+
+class _ChatsTabState extends State<_ChatsTab> {
+  List? _items;
+  late final List<StreamSubscription> _subs;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    // 새 메시지(내가 보낸 것 포함)나 재연결 때 목록을 다시 불러 순서·마지막 메시지를 맞춘다
+    _subs = [ChatSocket.messages.listen((_) => _load()), ChatSocket.reconnects.listen((_) => _load())];
+  }
+
+  @override
+  void dispose() {
+    for (final s in _subs) {
+      s.cancel();
+    }
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final res = await Api.call('GET', '/conversations');
+      if (mounted) setState(() => _items = res['items']);
+    } catch (e) {
+      if (mounted) showError(context, e);
+    }
+  }
+
+  Future<void> _open(Map c) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(conversationId: c['id'], partner: c['partner'], meId: widget.meId),
       ),
-    ],
-  );
+    );
+    _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _items;
+    return _TabPage(
+      title: '대화방',
+      children: [
+        if (items == null)
+          Padding(
+            padding: const .only(top: 80),
+            child: Center(child: CircularProgressIndicator(color: context.primary)),
+          )
+        else if (items.isEmpty)
+          EmptyState(
+            title: '아직 대화가 없어요',
+            subtitle: '메인에서 친구를 골라 첫 인사를 건네보세요',
+            action: ShadButton.outline(onPressed: widget.onFindFriends, child: const Text('친구 찾기')),
+          )
+        else
+          for (final (i, c) in items.indexed) ...[
+            if (i > 0) _rowDivider,
+            _ConversationRow(conversation: c, meId: widget.meId, onTap: () => _open(c)),
+          ],
+      ],
+    );
+  }
+}
+
+/// 대화방 행: 아바타 + 상대 이름 + 마지막 메시지 한 줄 + 시간
+class _ConversationRow extends StatelessWidget {
+  const _ConversationRow({required this.conversation, required this.meId, required this.onTap});
+  final Map conversation;
+  final int meId;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final partner = conversation['partner'] as Map;
+    final last = conversation['lastMessage'] as Map?;
+    final preview = last == null ? '첫 인사를 건네보세요' : '${last['senderId'] == meId ? '나: ' : ''}${last['body']}';
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const .symmetric(vertical: HanaSpace.md),
+        child: Row(
+          spacing: HanaSpace.lg,
+          children: [
+            InitialAvatar(partner['nickname']),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                spacing: 2,
+                children: [
+                  Text(partner['nickname'], style: HanaText.body, overflow: .ellipsis),
+                  Text(
+                    preview,
+                    style: HanaText.sub.copyWith(color: last == null ? HanaColors.grey500 : null),
+                    maxLines: 1,
+                    overflow: .ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (last != null) Text(chatTime(last['createdAt']), style: HanaText.caption),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ───────────────────────── 랜덤매칭 ─────────────────────────

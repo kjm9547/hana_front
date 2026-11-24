@@ -180,3 +180,31 @@ class EmptyState extends StatelessWidget {
     ),
   );
 }
+
+/// 채팅 말풍선: 내 메시지는 오른쪽 포인트 컬러, 상대는 왼쪽 회색
+class ChatBubble extends StatelessWidget {
+  const ChatBubble(this.text, {super.key, required this.mine});
+  final String text;
+  final bool mine;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: mine ? .centerRight : .centerLeft,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 280),
+      child: Container(
+        padding: const .symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: mine ? context.primary : HanaColors.grey100,
+          borderRadius: .only(
+            topLeft: const .circular(18),
+            topRight: const .circular(18),
+            bottomLeft: .circular(mine ? 18 : 4),
+            bottomRight: .circular(mine ? 4 : 18),
+          ),
+        ),
+        child: Text(text, style: HanaText.sub.copyWith(color: mine ? Colors.white : HanaColors.grey900)),
+      ),
+    ),
+  );
+}

@@ -102,13 +102,13 @@ class _DesignPreviewScreenState extends State<DesignPreviewScreen> {
                 ),
 
                 const SectionHeader('채팅 말풍선'),
-                const _Bubble('안녕하세요! 韓国語を勉強しています', mine: false),
+                const ChatBubble('안녕하세요! 韓国語を勉強しています', mine: false),
                 const SizedBox(height: HanaSpace.sm),
-                const _Bubble('반가워요! 저는 일본어 배우는 중이에요', mine: true),
+                const ChatBubble('반가워요! 저는 일본어 배우는 중이에요', mine: true),
                 const SizedBox(height: HanaSpace.sm),
-                const _Bubble('来月ソウルに行きます。おすすめありますか？', mine: false),
+                const ChatBubble('来月ソウルに行きます。おすすめありますか？', mine: false),
                 const SizedBox(height: HanaSpace.sm),
-                const _Bubble('그럼 제가 성수동 안내해드릴게요!', mine: true),
+                const ChatBubble('그럼 제가 성수동 안내해드릴게요!', mine: true),
 
                 const SectionHeader('빈 화면'),
                 EmptyState(
@@ -151,32 +151,5 @@ class _CallButton extends StatelessWidget {
     height: size,
     decoration: BoxDecoration(color: color, shape: .circle),
     child: Icon(icon, color: Colors.white, size: size * 0.4),
-  );
-}
-
-class _Bubble extends StatelessWidget {
-  const _Bubble(this.text, {required this.mine});
-  final String text;
-  final bool mine;
-
-  @override
-  Widget build(BuildContext context) => Align(
-    alignment: mine ? .centerRight : .centerLeft,
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 280),
-      child: Container(
-        padding: const .symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: mine ? context.primary : HanaColors.grey100,
-          borderRadius: .only(
-            topLeft: const .circular(18),
-            topRight: const .circular(18),
-            bottomLeft: .circular(mine ? 18 : 4),
-            bottomRight: .circular(mine ? 4 : 18),
-          ),
-        ),
-        child: Text(text, style: HanaText.sub.copyWith(color: mine ? Colors.white : HanaColors.grey900)),
-      ),
-    ),
   );
 }
