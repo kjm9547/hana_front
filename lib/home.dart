@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'api.dart';
 import 'chat.dart';
+import 'introductions.dart';
 import 'main.dart' show AuthScreen;
 import 'theme.dart';
 import 'widgets.dart';
@@ -26,16 +27,11 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   var _tab = 0;
-  // ponytail: 상대 목록은 첫 페이지(50명)만. 사용자가 늘면 nextCursor로 무한 스크롤.
-  late Future<(Map, List, Map)> _data = _load();
+  late Future<(Map, Map)> _data = _load();
 
-  Future<(Map, List, Map)> _load() async {
-    final [me, page, phrase] = await Future.wait([
-      Api.call('GET', '/me'),
-      Api.call('GET', '/users?limit=50'),
-      Api.call('GET', '/phrases/today'),
-    ]);
-    return (me as Map, page['items'] as List, phrase as Map);
+  Future<(Map, Map)> _load() async {
+    final [me, phrase] = await Future.wait([Api.call('GET', '/me'), Api.call('GET', '/phrases/today')]);
+    return (me as Map, phrase as Map);
   }
 
   @override
@@ -62,11 +58,11 @@ class _HomeShellState extends State<HomeShell> {
           builder: (context, snap) {
             if (snap.hasError) return Center(child: Text('${snap.error}', style: HanaText.sub));
             if (!snap.hasData) return Center(child: CircularProgressIndicator(color: context.primary));
-            final (me, partners, phrase) = snap.data!;
+            final (me, phrase) = snap.data!;
             return IndexedStack(
               index: _tab,
               children: [
-                _MainTab(me: me, partners: partners, phrase: phrase),
+                _MainTab(me: me, phrase: phrase),
                 _ChatsTab(meId: me['id'], onFindFriends: () => _go(0)),
                 _MatchTab(me: me),
                 const _BoardTab(),
@@ -170,9 +166,8 @@ const _rowDivider = Divider(height: 1, indent: 68, color: HanaColors.grey100);
 // ───────────────────────── 메인 ─────────────────────────
 
 class _MainTab extends StatelessWidget {
-  const _MainTab({required this.me, required this.partners, required this.phrase});
+  const _MainTab({required this.me, required this.phrase});
   final Map me;
-  final List partners;
   final Map phrase;
 
   @override
@@ -180,14 +175,7 @@ class _MainTab extends StatelessWidget {
     title: 'Hana',
     children: [
       TodayPhraseCard(phrase: phrase, myLang: me['nativeLang']),
-      SectionHeader('언어교환 친구', trailing: '${partners.length}명'),
-      if (partners.isEmpty)
-        const EmptyState(title: '아직 친구가 없어요', subtitle: '새 친구가 가입하면 여기에 보여요')
-      else
-        for (final (i, p) in partners.indexed) ...[
-          if (i > 0) _rowDivider,
-          PersonRow(person: p, onTap: () => openChat(context, partner: p, meId: me['id'])),
-        ],
+      TodayIntroductions(meId: me['id']),
     ],
   );
 }
@@ -397,6 +385,17 @@ class _ProfileTab extends StatelessWidget {
     }
   }
 
+  Future<void> _setPreference(BuildContext context, String value) async {
+    if (value == me['matchPreference']) return;
+    try {
+      await Api.call('PATCH', '/me', {'matchPreference': value});
+      onChanged();
+      if (context.mounted) showInfo(context, '내일 소개부터 반영돼요');
+    } catch (e) {
+      if (context.mounted) showError(context, e);
+    }
+  }
+
   void _logout(BuildContext context) {
     Api.token = null;
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AuthScreen()));
@@ -429,8 +428,31 @@ class _ProfileTab extends StatelessWidget {
           bio.isEmpty ? '아직 자기소개가 없어요' : bio,
           style: HanaText.sub.copyWith(color: bio.isEmpty ? HanaColors.grey500 : null),
         ),
+        const SectionHeader('소개 받을 사람'),
+        Row(
+          spacing: HanaSpace.sm,
+          children: [
+            for (final (value, title, subtitle) in [
+              ('any', '누구나', '국적 상관없이'),
+              ('cross', '한·일만', '${me['nativeLang'] == 'ko' ? '일본어' : '한국어'} 원어민만'),
+            ])
+              Expanded(
+                child: ChoiceCard(
+                  title: title,
+                  subtitle: subtitle,
+                  selected: me['matchPreference'] == value,
+                  onTap: () => _setPreference(context, value),
+                ),
+              ),
+          ],
+        ),
         const SectionHeader('계정'),
         _MenuRow(label: '자기소개 수정', onTap: () => _editBio(context)),
+        const Divider(height: 1, color: HanaColors.grey100),
+        _MenuRow(
+          label: '차단한 사람',
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BlockedUsersScreen())),
+        ),
         const Divider(height: 1, color: HanaColors.grey100),
         _MenuRow(label: '로그아웃', color: HanaColors.danger, onTap: () => _logout(context)),
       ],
