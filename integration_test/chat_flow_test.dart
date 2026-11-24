@@ -24,6 +24,14 @@ void main() {
     fail('$finder 가 $seconds초 안에 나타나지 않음');
   }
 
+  /// 화면 전환·대화상자 애니메이션이 끝날 때까지 (중간에 누르면 좌표가 어긋난다)
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 6; i++) {
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+      await tester.pump();
+    }
+  }
+
   Future<dynamic> call(String method, String path, {String? token, Map? json}) async {
     final req = http.Request(method, Uri.parse('$apiBase$path'))..headers['content-type'] = 'application/json';
     if (token != null) req.headers['authorization'] = 'Bearer $token';
@@ -72,6 +80,7 @@ void main() {
     await waitFor(tester, find.text('ゆき'));
     await tester.tap(find.text('ゆき').first);
     await waitFor(tester, find.byType(ChatRoomScreen));
+    await settle(tester);
     // 화면 전환 중에는 이전 화면(로그인)의 입력칸도 남아 있어서 채팅방 안으로 좁힌다
     final input = find.descendant(of: find.byType(ChatRoomScreen), matching: find.byType(EditableText));
     await waitFor(tester, input);
