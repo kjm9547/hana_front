@@ -29,14 +29,14 @@ void main() {
         tester.pumpWidget(ShadApp(home: TodayPhraseCard(phrase: phrase, myLang: myLang)));
 
     await show('ko');
-    expect(find.text('오늘의 일본어'), findsOneWidget);
+    expect(find.textContaining('오늘의 일본어'), findsOneWidget);
     expect(find.text('오아이데키테 우레시이데스'), findsOneWidget); // 한국인에겐 한글 발음
-    expect(find.text('처음 만났을 때'), findsOneWidget);
+    expect(find.textContaining('처음 만났을 때'), findsOneWidget);
 
     await show('ja');
-    expect(find.text('今日の韓国語'), findsOneWidget);
+    expect(find.textContaining('今日の韓国語'), findsOneWidget);
     expect(find.text('マンナソ パンガウォヨ'), findsOneWidget); // 일본인에겐 카타카나 발음
-    expect(find.text('初めて会った時'), findsOneWidget);
+    expect(find.textContaining('初めて会った時'), findsOneWidget);
   });
 
   testWidgets('팔레트 전환이 화면 테마에 반영됨', (tester) async {

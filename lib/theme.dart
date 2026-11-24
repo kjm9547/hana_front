@@ -1,10 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Hana 디자인 토큰. 토스/iOS 톤: 흰 바탕 + 옅은 회색 면, 테두리 최소화, 큰 굵은 타이틀, 둥근 모서리.
-/// 포인트 컬러는 테마에서 읽는다: context.primary / context.primarySoft
+/// Hana 디자인 규칙
+/// - 흰 바탕에 콘텐츠를 바로 올린다. 섹션은 카드가 아니라 여백 + 섹션 제목으로 나눈다.
+/// - 포인트 컬러는 주요 버튼, 선택된 탭, 오늘의 표현(시그니처) 세 곳에만.
+/// - 간격은 [HanaSpace], 글자는 [HanaText] 밖의 값을 쓰지 않는다.
 abstract final class HanaColors {
-  // 회색 단계 (토스 grey 계열 톤)
   static const grey50 = Color(0xFFF9FAFB);
   static const grey100 = Color(0xFFF2F4F6);
   static const grey200 = Color(0xFFE5E8EB);
@@ -15,7 +16,18 @@ abstract final class HanaColors {
   static const danger = Color(0xFFF04452);
 }
 
-/// 포인트 컬러 후보. primary = 버튼/강조, soft = 옅은 배경(배지, 선택 카드)
+/// 4/8 단위 간격 스케일
+abstract final class HanaSpace {
+  static const xs = 4.0;
+  static const sm = 8.0;
+  static const md = 12.0;
+  static const lg = 16.0;
+  static const xl = 24.0;
+  static const xxl = 32.0;
+  static const page = 20.0; // 화면 좌우 여백
+}
+
+/// 포인트 컬러 후보. primary = 버튼/강조, soft = 옅은 배경(오늘의 표현, 선택 상태)
 typedef HanaPalette = ({String name, Color primary, Color soft});
 
 const palettes = <HanaPalette>[
@@ -29,21 +41,6 @@ const palettes = <HanaPalette>[
   (name: '먹 (墨)', primary: Color(0xFF191F28), soft: Color(0xFFF2F4F6)),
 ];
 
-/// 색상환에서 hue를 돌리고 밝기를 더한 색 (그라데이션 끝색 등을 팔레트에서 자동 도출)
-Color shiftColor(Color c, {double hue = 0, double light = 0}) {
-  final hsl = HSLColor.fromColor(c);
-  return hsl.withHue((hsl.hue + hue) % 360).withLightness((hsl.lightness + light).clamp(0, 1)).toColor();
-}
-
-/// 이름마다 고정된 파스텔 색 (아바타용). 팔레트와 무관하게 화면에 생기를 준다.
-({Color bg, Color fg}) pastelFor(String seed) {
-  final hue = seed.codeUnits.fold(7, (a, b) => (a * 31 + b) % 360).toDouble();
-  return (
-    bg: HSLColor.fromAHSL(1, hue, 0.75, 0.92).toColor(),
-    fg: HSLColor.fromAHSL(1, hue, 0.50, 0.40).toColor(),
-  );
-}
-
 /// 흰 글자 대비. 4.5 이상이면 WCAG AA (본문 크기 기준)
 double contrastOnWhite(Color c) => 1.05 / (c.computeLuminance() + 0.05);
 
@@ -51,7 +48,7 @@ const _font = 'Pretendard';
 
 ShadThemeData hanaTheme(HanaPalette p) => ShadThemeData(
   brightness: Brightness.light,
-  radius: BorderRadius.circular(14),
+  radius: BorderRadius.circular(12),
   textTheme: ShadTextTheme(family: _font),
   colorScheme: ShadColorScheme(
     background: Colors.white,
@@ -89,11 +86,23 @@ ThemeData hanaMaterialTheme(BuildContext context, ThemeData base) => base.copyWi
   splashFactory: NoSplash.splashFactory, // iOS처럼 물결 효과 없음
 );
 
-/// 토스식 타이포 스케일 (iOS 본문 17pt 기준)
+/// 글자 5단계 + 대표 문구 1단계
 abstract final class HanaText {
-  static const title = TextStyle(fontFamily: _font, fontSize: 26, fontWeight: FontWeight.w700, height: 1.35, color: HanaColors.grey900);
-  static const heading = TextStyle(fontFamily: _font, fontSize: 20, fontWeight: FontWeight.w700, color: HanaColors.grey900);
-  static const body = TextStyle(fontFamily: _font, fontSize: 17, fontWeight: FontWeight.w500, color: HanaColors.grey900);
-  static const sub = TextStyle(fontFamily: _font, fontSize: 15, fontWeight: FontWeight.w400, color: HanaColors.grey700, height: 1.45);
+  /// 탭 제목 (iOS large title 계열)
+  static const title = TextStyle(fontFamily: _font, fontSize: 28, fontWeight: FontWeight.w700, height: 1.3, color: HanaColors.grey900);
+
+  /// 섹션 제목
+  static const section = TextStyle(fontFamily: _font, fontSize: 20, fontWeight: FontWeight.w700, height: 1.3, color: HanaColors.grey900);
+
+  /// 목록의 이름, 본문 강조
+  static const body = TextStyle(fontFamily: _font, fontSize: 16, fontWeight: FontWeight.w600, color: HanaColors.grey900);
+
+  /// 설명, 자기소개
+  static const sub = TextStyle(fontFamily: _font, fontSize: 14, fontWeight: FontWeight.w400, height: 1.45, color: HanaColors.grey700);
+
+  /// 메타 정보 (언어, 시간, 개수)
   static const caption = TextStyle(fontFamily: _font, fontSize: 13, fontWeight: FontWeight.w500, color: HanaColors.grey500);
+
+  /// 오늘의 표현처럼 화면에서 가장 크게 보여줄 문장
+  static const display = TextStyle(fontFamily: _font, fontSize: 24, fontWeight: FontWeight.w700, height: 1.35, color: HanaColors.grey900);
 }

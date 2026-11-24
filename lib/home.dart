@@ -35,10 +35,11 @@ class _HomeShellState extends State<HomeShell> {
     return (me as Map, page['items'] as List, phrase as Map);
   }
 
+  void _go(int tab) => setState(() => _tab = tab);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HanaColors.grey100, // iOS 그룹 목록처럼: 회색 바탕 + 흰 카드
       body: SafeArea(
         bottom: false,
         child: FutureBuilder(
@@ -51,7 +52,7 @@ class _HomeShellState extends State<HomeShell> {
               index: _tab,
               children: [
                 _MainTab(me: me, partners: partners, phrase: phrase),
-                const _ChatsTab(),
+                _ChatsTab(onFindFriends: () => _go(0)),
                 _MatchTab(me: me),
                 const _BoardTab(),
                 _ProfileTab(me: me, onChanged: () => setState(() => _data = _load())),
@@ -60,12 +61,12 @@ class _HomeShellState extends State<HomeShell> {
           },
         ),
       ),
-      bottomNavigationBar: _TabBar(index: _tab, onTap: (i) => setState(() => _tab = i)),
+      bottomNavigationBar: _TabBar(index: _tab, onTap: _go),
     );
   }
 }
 
-/// iOS 탭바: 흰 바탕 + 위쪽 얇은 선, 선택된 탭만 포인트 컬러
+/// 흰 바탕 + 위쪽 얇은 선, 선택된 탭만 포인트 컬러
 class _TabBar extends StatelessWidget {
   const _TabBar({required this.index, required this.onTap});
   final int index;
@@ -80,7 +81,7 @@ class _TabBar extends StatelessWidget {
     child: SafeArea(
       top: false,
       child: SizedBox(
-        height: 60,
+        height: 56,
         child: Row(
           children: [
             for (final (i, (icon, label)) in _tabs.indexed)
@@ -95,14 +96,14 @@ class _TabBar extends StatelessWidget {
                     onTap: () => onTap(i),
                     child: Column(
                       mainAxisAlignment: .center,
-                      spacing: 4,
+                      spacing: HanaSpace.xs,
                       children: [
-                        Icon(icon, size: 24, color: i == index ? context.primary : HanaColors.grey500),
+                        Icon(icon, size: 22, color: i == index ? context.primary : HanaColors.grey500),
                         Text(
                           label,
                           style: HanaText.caption.copyWith(
                             fontSize: 11,
-                            fontWeight: i == index ? .w700 : .w500,
+                            fontWeight: i == index ? .w600 : .w500,
                             color: i == index ? context.primary : HanaColors.grey500,
                           ),
                         ),
@@ -118,52 +119,38 @@ class _TabBar extends StatelessWidget {
   );
 }
 
-/// 탭 공통 틀: 왼쪽 큰 제목 + 스크롤 본문
+/// 탭 공통 틀: 큰 제목 + 스크롤 본문 (+ 하단 고정 바)
 class _TabPage extends StatelessWidget {
-  const _TabPage({required this.title, required this.children});
+  const _TabPage({required this.title, required this.children, this.bottom});
   final String title;
   final List<Widget> children;
+  final Widget? bottom;
 
   @override
   Widget build(BuildContext context) => Center(
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 600),
-      child: ListView(
-        padding: const .fromLTRB(20, 24, 20, 32),
-        children: [Text(title, style: HanaText.title), const SizedBox(height: 16), ...children],
-      ),
-    ),
-  );
-}
-
-/// 아직 없는 기능의 빈 화면
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.icon, required this.title, required this.subtitle});
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) => GroupCard(
-    child: Padding(
-      padding: const .symmetric(horizontal: 24, vertical: 48),
       child: Column(
-        spacing: 8,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(color: context.primarySoft, shape: .circle),
-            child: Icon(icon, color: context.primary, size: 28),
+          Expanded(
+            child: ListView(
+              padding: const .fromLTRB(HanaSpace.page, HanaSpace.lg, HanaSpace.page, HanaSpace.xxl),
+              children: [Text(title, style: HanaText.title), const SizedBox(height: HanaSpace.xl), ...children],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(title, style: HanaText.heading),
-          Text(subtitle, style: HanaText.sub, textAlign: .center),
+          if (bottom != null)
+            Container(
+              padding: const .fromLTRB(HanaSpace.page, HanaSpace.md, HanaSpace.page, HanaSpace.md),
+              decoration: const BoxDecoration(border: Border(top: BorderSide(color: HanaColors.grey100))),
+              child: bottom,
+            ),
         ],
       ),
     ),
   );
 }
+
+const _rowDivider = Divider(height: 1, indent: 68, color: HanaColors.grey100);
 
 // ───────────────────────── 메인 ─────────────────────────
 
@@ -175,32 +162,14 @@ class _MainTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _TabPage(
-    title: '${me['nickname']}님, 안녕하세요',
+    title: 'Hana',
     children: [
-      HeroBanner(
-        title: '오늘은 누구와\n이야기해볼까요?',
-        subtitle: '今日は誰と話そう？',
-        icon: LucideIcons.messagesSquare,
-        pill: '친구 ${partners.length}명이 기다려요',
-      ),
-      const SizedBox(height: 12),
       TodayPhraseCard(phrase: phrase, myLang: me['nativeLang']),
-      SectionLabel('나와 언어를 바꿔줄 친구 ${partners.length}명'),
-      GroupCard(
-        child: partners.isEmpty
-            ? const Padding(padding: .all(24), child: Text('아직 상대가 없어요', style: HanaText.sub))
-            : Column(
-                children: [
-                  for (final (i, p) in partners.indexed) ...[
-                    if (i > 0) const Divider(height: 1, indent: 80, color: HanaColors.grey100),
-                    PersonRow(
-                      person: p,
-                      trailing: const Icon(LucideIcons.chevronRight, size: 20, color: HanaColors.grey500),
-                    ),
-                  ],
-                ],
-              ),
-      ),
+      SectionHeader('언어교환 친구', trailing: '${partners.length}명'),
+      if (partners.isEmpty)
+        const EmptyState(title: '아직 친구가 없어요', subtitle: '새 친구가 가입하면 여기에 보여요')
+      else
+        for (final (i, p) in partners.indexed) ...[if (i > 0) _rowDivider, PersonRow(person: p)],
     ],
   );
 }
@@ -208,16 +177,17 @@ class _MainTab extends StatelessWidget {
 // ───────────────────────── 대화방 ─────────────────────────
 
 class _ChatsTab extends StatelessWidget {
-  const _ChatsTab();
+  const _ChatsTab({required this.onFindFriends});
+  final VoidCallback onFindFriends;
 
   @override
-  Widget build(BuildContext context) => const _TabPage(
+  Widget build(BuildContext context) => _TabPage(
     title: '대화방',
     children: [
-      _EmptyState(
-        icon: LucideIcons.messageCircle,
+      EmptyState(
         title: '아직 대화가 없어요',
-        subtitle: '메인에서 친구를 골라\n첫 인사를 건네보세요',
+        subtitle: '메인에서 친구를 골라 첫 인사를 건네보세요',
+        action: ShadButton.outline(onPressed: onFindFriends, child: const Text('친구 찾기')),
       ),
     ],
   );
@@ -234,44 +204,34 @@ class _MatchTab extends StatelessWidget {
     final other = me['nativeLang'] == 'ko' ? '일본어' : '한국어';
     return _TabPage(
       title: '랜덤매칭',
-      children: [
-        HeroBanner(
-          title: '지금 접속한 친구와\n바로 통화해요',
-          subtitle: '$other 원어민과 3분, 가볍게 시작해요',
-          icon: LucideIcons.phoneCall,
-        ),
-        const SizedBox(height: 12),
+      bottom: ShadButton(
+        width: double.infinity,
+        height: 52,
         // ponytail: 매칭·통화 기능 전까지는 안내만. 다음 단계에서 시그널링 서버와 연결.
-        ShadButton(
-          height: 56,
-          onPressed: () => showInfo(context, '랜덤 통화는 곧 열려요!'),
-          leading: const Icon(LucideIcons.shuffle, size: 20),
-          child: const Text('랜덤 통화 시작', style: TextStyle(fontSize: 17, fontWeight: .w600)),
-        ),
-        const SectionLabel('이렇게 진행돼요'),
-        GroupCard(
-          child: Column(
-            children: [
-              for (final (i, (icon, color, text)) in [
-                (LucideIcons.radar, context.primary, '접속 중인 $other 원어민을 찾아요'),
-                (LucideIcons.phone, const Color(0xFF34C759), '연결되면 오늘의 표현으로 인사해요'),
-                (LucideIcons.heartHandshake, const Color(0xFFFF9500), '마음이 맞으면 친구 신청을 보내요'),
-              ].indexed) ...[
-                if (i > 0) const Divider(height: 1, indent: 64, color: HanaColors.grey100),
-                Padding(
-                  padding: const .symmetric(horizontal: 16, vertical: 14),
-                  child: Row(
-                    spacing: 16,
-                    children: [
-                      IconTile(icon, color),
-                      Expanded(child: Text(text, style: HanaText.body.copyWith(fontSize: 16))),
-                    ],
-                  ),
-                ),
+        onPressed: () => showInfo(context, '랜덤 통화는 곧 열려요'),
+        child: const Text('랜덤 통화 시작', style: TextStyle(fontSize: 16, fontWeight: .w600)),
+      ),
+      children: [
+        Text('지금 접속한 $other 원어민과\n바로 통화해요', style: HanaText.section),
+        const SizedBox(height: HanaSpace.sm),
+        const Text('처음엔 3분, 마음이 맞으면 더 길게', style: HanaText.sub),
+        const SectionHeader('이렇게 진행돼요'),
+        for (final (i, text) in [
+          '접속 중인 $other 원어민을 찾아요',
+          '연결되면 오늘의 표현으로 인사해요',
+          '마음이 맞으면 친구 신청을 보내요',
+        ].indexed)
+          Padding(
+            padding: const .symmetric(vertical: HanaSpace.sm),
+            child: Row(
+              crossAxisAlignment: .start,
+              spacing: HanaSpace.md,
+              children: [
+                SizedBox(width: 20, child: Text('${i + 1}', style: HanaText.body.copyWith(color: context.primary))),
+                Expanded(child: Text(text, style: HanaText.body.copyWith(fontWeight: .w500))),
               ],
-            ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -285,13 +245,7 @@ class _BoardTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const _TabPage(
     title: '게시판',
-    children: [
-      _EmptyState(
-        icon: LucideIcons.newspaper,
-        title: '게시판 준비 중',
-        subtitle: '여행 후기, 질문, 동행 모집을\n나눌 공간이에요',
-      ),
-    ],
+    children: [EmptyState(title: '게시판은 준비 중이에요', subtitle: '여행 후기, 질문, 동행 모집을 나눌 공간이에요')],
   );
 }
 
@@ -313,7 +267,7 @@ class _ProfileTab extends StatelessWidget {
           ShadButton.secondary(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ShadButton(onPressed: () => Navigator.pop(ctx, ctrl.text), child: const Text('저장')),
         ],
-        child: Padding(padding: const .symmetric(vertical: 8), child: ShadTextarea(controller: ctrl)),
+        child: Padding(padding: const .symmetric(vertical: HanaSpace.sm), child: ShadTextarea(controller: ctrl)),
       ),
     );
     if (bio == null) return;
@@ -336,63 +290,51 @@ class _ProfileTab extends StatelessWidget {
     return _TabPage(
       title: '프로필',
       children: [
-        GroupCard(
-          child: Padding(
-            padding: const .symmetric(vertical: 28, horizontal: 20),
-            child: Column(
-              spacing: 6,
-              children: [
-                InitialAvatar(me['nickname'], size: 80),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: .center,
-                  spacing: 8,
-                  children: [Text(me['nickname'], style: HanaText.heading), LangBadge(me['nativeLang'])],
-                ),
-                Text(me['email'], style: HanaText.caption),
-                const SizedBox(height: 8),
-                Text(
-                  bio.isEmpty ? '자기소개를 써보세요' : bio,
-                  style: HanaText.sub.copyWith(color: bio.isEmpty ? HanaColors.grey500 : null),
-                  textAlign: .center,
-                ),
-              ],
+        Row(
+          spacing: HanaSpace.lg,
+          children: [
+            InitialAvatar(me['nickname'], size: 72),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                spacing: 2,
+                children: [
+                  Text(me['nickname'], style: HanaText.section),
+                  Text('${langLabel[me['nativeLang']]} 원어민 · ${me['email']}', style: HanaText.caption),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
-        const SectionLabel('설정'),
-        GroupCard(
-          child: Column(
-            children: [
-              _SettingRow(icon: LucideIcons.pencil, color: context.primary, label: '자기소개 수정', onTap: () => _editBio(context)),
-              const Divider(height: 1, indent: 64, color: HanaColors.grey100),
-              _SettingRow(icon: LucideIcons.logOut, color: HanaColors.grey500, label: '로그아웃', onTap: () => _logout(context)),
-            ],
-          ),
+        const SizedBox(height: HanaSpace.lg),
+        Text(
+          bio.isEmpty ? '아직 자기소개가 없어요' : bio,
+          style: HanaText.sub.copyWith(color: bio.isEmpty ? HanaColors.grey500 : null),
         ),
+        const SectionHeader('계정'),
+        _MenuRow(label: '자기소개 수정', onTap: () => _editBio(context)),
+        const Divider(height: 1, color: HanaColors.grey100),
+        _MenuRow(label: '로그아웃', color: HanaColors.danger, onTap: () => _logout(context)),
       ],
     );
   }
 }
 
-class _SettingRow extends StatelessWidget {
-  const _SettingRow({required this.icon, required this.color, required this.label, required this.onTap});
-  final IconData icon;
-  final Color color;
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.label, required this.onTap, this.color});
   final String label;
   final VoidCallback onTap;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) => InkWell(
     onTap: onTap,
     child: Padding(
-      padding: const .symmetric(horizontal: 16, vertical: 12),
+      padding: const .symmetric(vertical: HanaSpace.lg),
       child: Row(
-        spacing: 16,
         children: [
-          IconTile(icon, color),
-          Expanded(child: Text(label, style: HanaText.body)),
-          const Icon(LucideIcons.chevronRight, size: 20, color: HanaColors.grey500),
+          Expanded(child: Text(label, style: HanaText.body.copyWith(fontWeight: .w500, color: color))),
+          if (color == null) const Icon(LucideIcons.chevronRight, size: 20, color: HanaColors.grey500),
         ],
       ),
     ),
