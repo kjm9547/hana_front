@@ -199,8 +199,13 @@ class _ChatsTabState extends State<_ChatsTab> {
   void initState() {
     super.initState();
     _load();
-    // 새 메시지(내가 보낸 것 포함)나 재연결 때 목록을 다시 불러 순서·마지막 메시지를 맞춘다
-    _subs = [ChatSocket.messages.listen((_) => _load()), ChatSocket.reconnects.listen((_) => _load())];
+    // 새 메시지·읽음·방 상태 변화·재연결 때 목록을 다시 불러 순서·마지막 메시지·안 읽은 수를 맞춘다
+    _subs = [
+      ChatSocket.messages.listen((_) => _load()),
+      ChatSocket.reads.listen((_) => _load()),
+      ChatSocket.roomUpdates.listen((_) => _load()),
+      ChatSocket.reconnects.listen((_) => _load()),
+    ];
   }
 
   @override
@@ -267,7 +272,18 @@ class _ConversationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final partner = conversation['partner'] as Map;
     final last = conversation['lastMessage'] as Map?;
-    final preview = last == null ? '첫 인사를 건네보세요' : '${last['senderId'] == meId ? '나: ' : ''}${last['body']}';
+    final unread = conversation['unreadCount'] as int? ?? 0;
+    final preview = switch (last) {
+      null => '첫 편지를 건네보세요',
+      {'kind': 'farewell'} => '끝맺음 인사: ${last['body']}',
+      _ => '${last['senderId'] == meId ? '나: ' : ''}${last['body']}',
+    };
+    // 이름 옆 작은 표시: 마친 대화 / 진지한 인연
+    final (tag, tagColor) = conversation['closedAt'] != null
+        ? ('마친 대화', HanaColors.grey500)
+        : conversation['seriousAt'] != null
+        ? ('진지한 인연', context.primary)
+        : (null, null);
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -281,7 +297,13 @@ class _ConversationRow extends StatelessWidget {
                 crossAxisAlignment: .start,
                 spacing: 2,
                 children: [
-                  Text(partner['nickname'], style: HanaText.body, overflow: .ellipsis),
+                  Row(
+                    spacing: HanaSpace.sm,
+                    children: [
+                      Flexible(child: Text(partner['nickname'], style: HanaText.body, overflow: .ellipsis)),
+                      if (tag != null) Text(tag, style: HanaText.caption.copyWith(fontSize: 11, color: tagColor)),
+                    ],
+                  ),
                   Text(
                     preview,
                     style: HanaText.sub.copyWith(color: last == null ? HanaColors.grey500 : null),
@@ -291,7 +313,22 @@ class _ConversationRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (last != null) Text(chatTime(last['createdAt']), style: HanaText.caption),
+            Column(
+              crossAxisAlignment: .end,
+              spacing: HanaSpace.xs,
+              children: [
+                if (last != null) Text(chatTime(last['createdAt']), style: HanaText.caption),
+                if (unread > 0)
+                  Container(
+                    padding: const .symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(color: context.primary, borderRadius: .circular(10)),
+                    child: Text(
+                      unread > 99 ? '99+' : '$unread',
+                      style: HanaText.caption.copyWith(color: Colors.white, fontSize: 11, fontWeight: .w700),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
