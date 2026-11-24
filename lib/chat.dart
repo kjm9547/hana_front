@@ -48,22 +48,6 @@ abstract final class ChatSocket {
   }
 }
 
-/// 상대와의 대화방을 열거나 만든 뒤 채팅방으로 이동
-Future<void> openChat(BuildContext context, {required Map partner, required int meId}) async {
-  try {
-    final conversation = await Api.call('POST', '/conversations', {'partnerId': partner['id']});
-    if (!context.mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) =>
-            ChatRoomScreen(conversationId: conversation['id'], partner: conversation['partner'], meId: meId),
-      ),
-    );
-  } catch (e) {
-    if (context.mounted) showError(context, e);
-  }
-}
-
 /// 목록용 시간: 오늘이면 시:분, 아니면 월/일
 String chatTime(String iso) {
   final t = DateTime.parse(iso).toLocal();
