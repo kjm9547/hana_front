@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.50.1
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      # 경고·info도 실패로 처리
+      - run: flutter analyze --fatal-infos --fatal-warnings
+      # integration_test는 실제 서버가 필요해서 CI에서는 제외
+      - run: flutter test test
