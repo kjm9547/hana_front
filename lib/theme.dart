@@ -13,7 +13,16 @@ abstract final class HanaColors {
   static const grey700 = Color(0xFF4E5968);
   static const grey900 = Color(0xFF191F28);
 
-  static const danger = Color(0xFFF04452);
+  /// 포인트 컬러 = 펭귄 목도리 레드. 주요 버튼, 선택된 탭, 내 말풍선, 선택 상태
+  static const primary = Color(0xFFD93A31); // 흰 글자 4.6
+  static const primarySoft = Color(0xFFFFF0EE);
+
+  /// 오늘의 표현(시그니처) 전용 남색
+  static const accent = Color(0xFF2340B0); // 흰 글자 8.6
+  static const accentSoft = Color(0xFFEBEFFC);
+
+  /// 로그아웃 한 곳뿐이라 primary와 같은 색
+  static const danger = primary;
 }
 
 /// 4/8 단위 간격 스케일
@@ -27,26 +36,9 @@ abstract final class HanaSpace {
   static const page = 20.0; // 화면 좌우 여백
 }
 
-/// 포인트 컬러 후보. primary = 버튼/강조, soft = 옅은 배경(오늘의 표현, 선택 상태)
-typedef HanaPalette = ({String name, Color primary, Color soft});
-
-const palettes = <HanaPalette>[
-  (name: '벚꽃 라즈베리', primary: Color(0xFFD6336A), soft: Color(0xFFFDECF1)),
-  (name: '사쿠라 소프트', primary: Color(0xFFF06A8E), soft: Color(0xFFFFF0F4)),
-  (name: '코랄', primary: Color(0xFFF2643C), soft: Color(0xFFFFF1EC)),
-  (name: '토스 블루', primary: Color(0xFF3182F6), soft: Color(0xFFE8F3FF)),
-  (name: '아이 (藍)', primary: Color(0xFF3D4DB7), soft: Color(0xFFEDEFFB)),
-  (name: '후지 (藤)', primary: Color(0xFF8B5CF6), soft: Color(0xFFF3EEFF)),
-  (name: '말차', primary: Color(0xFF2E9E6B), soft: Color(0xFFE8F7EF)),
-  (name: '먹 (墨)', primary: Color(0xFF191F28), soft: Color(0xFFF2F4F6)),
-];
-
-/// 흰 글자 대비. 4.5 이상이면 WCAG AA (본문 크기 기준)
-double contrastOnWhite(Color c) => 1.05 / (c.computeLuminance() + 0.05);
-
 const _font = 'Pretendard';
 
-ShadThemeData hanaTheme(HanaPalette p) => ShadThemeData(
+final hanaTheme = ShadThemeData(
   brightness: Brightness.light,
   radius: BorderRadius.circular(12),
   textTheme: ShadTextTheme(family: _font),
@@ -57,20 +49,20 @@ ShadThemeData hanaTheme(HanaPalette p) => ShadThemeData(
     cardForeground: HanaColors.grey900,
     popover: Colors.white,
     popoverForeground: HanaColors.grey900,
-    primary: p.primary,
+    primary: HanaColors.primary,
     primaryForeground: Colors.white,
     secondary: HanaColors.grey100,
     secondaryForeground: HanaColors.grey900,
     muted: HanaColors.grey100,
     mutedForeground: HanaColors.grey500,
-    accent: p.soft,
-    accentForeground: p.primary,
+    accent: HanaColors.primarySoft,
+    accentForeground: HanaColors.primary,
     destructive: HanaColors.danger,
     destructiveForeground: Colors.white,
     border: HanaColors.grey200,
     input: HanaColors.grey200,
-    ring: p.primary,
-    selection: p.soft,
+    ring: HanaColors.primary,
+    selection: HanaColors.primarySoft,
   ),
 );
 

@@ -64,14 +64,37 @@ Future<void> openChat(BuildContext context, {required Map partner, required int 
   }
 }
 
-/// 목록용 시간: 오늘이면 시:분, 아니면 월/일
-String chatTime(String iso) {
-  final t = DateTime.parse(iso).toLocal();
-  final now = DateTime.now();
-  if (t.year == now.year && t.month == now.month && t.day == now.day) {
-    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-  }
-  return '${t.month}/${t.day}';
+DateTime _local(String iso) => DateTime.parse(iso).toLocal();
+
+/// 달력상 며칠 전인지 (시각 무시, 서머타임에도 안전하게 UTC 자정끼리 비교)
+int _daysAgo(DateTime t, DateTime now) =>
+    DateTime.utc(now.year, now.month, now.day).difference(DateTime.utc(t.year, t.month, t.day)).inDays;
+
+/// "오후 3:42"
+String clockLabel(DateTime t) {
+  final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+  return '${t.hour < 12 ? '오전' : '오후'} $h:${t.minute.toString().padLeft(2, '0')}';
+}
+
+/// 채팅방 날짜 구분선: 오늘 · 어제 · 11월 23일 (일) · 2025년 11월 23일 (일)
+String dayLabel(DateTime t, DateTime now) {
+  final ago = _daysAgo(t, now);
+  if (ago == 0) return '오늘';
+  if (ago == 1) return '어제';
+  final md = '${t.month}월 ${t.day}일 (${'월화수목금토일'[t.weekday - 1]})';
+  return t.year == now.year ? md : '${t.year}년 $md';
+}
+
+/// 대화 목록용 시간: 오늘은 "오후 3:42", 어제는 "어제", 올해는 "11월 23일", 그 전은 "2025. 11. 23."
+String chatTime(String iso, {DateTime? now}) {
+  final t = _local(iso);
+  now ??= DateTime.now();
+  return switch (_daysAgo(t, now)) {
+    0 => clockLabel(t),
+    1 => '어제',
+    _ when t.year == now.year => '${t.month}월 ${t.day}일',
+    _ => '${t.year}. ${t.month}. ${t.day}.',
+  };
 }
 
 class ChatRoomScreen extends StatefulWidget {
@@ -215,15 +238,57 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     if (_messages.isEmpty) {
       return EmptyState(title: '${widget.partner['nickname']}님과의 첫 대화예요', subtitle: '정성 어린 첫 인사를 건네보세요');
     }
-    return ListView.separated(
+    final now = DateTime.now();
+    // 최신순(0번이 맨 아래)이라 i+1이 바로 앞 메시지, i-1이 바로 뒤 메시지
+    return ListView.builder(
       controller: _scroll,
       reverse: true,
       padding: const .symmetric(horizontal: HanaSpace.page, vertical: HanaSpace.lg),
       itemCount: _messages.length,
-      separatorBuilder: (_, _) => const SizedBox(height: HanaSpace.sm),
-      itemBuilder: (_, i) => ChatBubble(_messages[i]['body'], mine: _messages[i]['senderId'] == widget.meId),
+      itemBuilder: (_, i) {
+        final m = _messages[i];
+        final t = _local(m['createdAt']);
+        final prev = i + 1 < _messages.length ? _messages[i + 1] : null;
+        final next = i > 0 ? _messages[i - 1] : null;
+        final newDay = prev == null || _daysAgo(_local(prev['createdAt']), t) != 0;
+        int minute(Map o) => DateTime.parse(o['createdAt']).millisecondsSinceEpoch ~/ 60000;
+        bool sameGroup(Map? o) => o != null && o['senderId'] == m['senderId'] && minute(o) == minute(m);
+        return Column(
+          children: [
+            if (newDay) _DayDivider(dayLabel(t, now)),
+            Padding(
+              // 같은 사람이 같은 분에 이어 보낸 묶음은 촘촘하게, 말하는 사람이 바뀌면 넓게
+              padding: .only(top: newDay ? 0 : (sameGroup(prev) ? HanaSpace.xs : HanaSpace.md)),
+              child: ChatBubble(
+                m['body'],
+                mine: m['senderId'] == widget.meId,
+                time: sameGroup(next) ? null : clockLabel(t), // 묶음의 마지막 말풍선에만 시간
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
+}
+
+/// 날짜가 바뀌는 곳에 넣는 가운데 정렬 구분선
+class _DayDivider extends StatelessWidget {
+  const _DayDivider(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const .symmetric(vertical: HanaSpace.lg),
+    child: Row(
+      spacing: HanaSpace.md,
+      children: [
+        const Expanded(child: Divider(height: 1, color: HanaColors.grey100)),
+        Text(label, style: HanaText.caption),
+        const Expanded(child: Divider(height: 1, color: HanaColors.grey100)),
+      ],
+    ),
+  );
 }
 
 class _InputBar extends StatelessWidget {

@@ -1,9 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hana/main.dart';
-import 'package:hana/palette_switcher.dart';
-import 'package:hana/theme.dart';
 import 'package:hana/widgets.dart';
-import 'package:material_ui/material_ui.dart' show Color;
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 void main() {
@@ -39,17 +36,4 @@ void main() {
     expect(find.textContaining('初めて会った時'), findsOneWidget);
   });
 
-  testWidgets('팔레트 전환이 화면 테마에 반영됨', (tester) async {
-    await tester.pumpWidget(const HanaApp());
-    Color primary() => ShadTheme.of(tester.element(find.byType(AuthScreen))).colorScheme.primary;
-    expect(primary(), palettes.first.primary);
-
-    await tester.tap(find.byType(PaletteSwitcher));
-    await tester.pump();
-    await tester.tap(find.text(palettes[3].name));
-    await tester.pumpAndSettle();
-    expect(primary(), palettes[3].primary);
-
-    currentPalette.value = palettes.first; // 다른 테스트에 영향 없게 원복
-  });
 }

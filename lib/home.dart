@@ -325,11 +325,12 @@ class _MatchTab extends StatelessWidget {
       bottom: ShadButton(
         width: double.infinity,
         height: 52,
-        // ponytail: 매칭·통화 기능 전까지는 안내만. 다음 단계에서 시그널링 서버와 연결.
-        onPressed: () => showInfo(context, '랜덤 통화는 곧 열려요'),
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _MatchWaiting(other: other))),
         child: const Text('랜덤 통화 시작', style: TextStyle(fontSize: 16, fontWeight: .w600)),
       ),
       children: [
+        const Align(alignment: .centerLeft, child: PenguinMascot(Penguin.sideeye)),
+        const SizedBox(height: HanaSpace.lg),
         Text('지금 접속한 $other 원어민과\n바로 통화해요', style: HanaText.section),
         const SizedBox(height: HanaSpace.sm),
         const Text('처음엔 3분, 마음이 맞으면 더 길게', style: HanaText.sub),
@@ -353,6 +354,55 @@ class _MatchTab extends StatelessWidget {
       ],
     );
   }
+}
+
+/// MATCH-02 매칭 대기: 탭바 없는 흐름 화면
+// ponytail: 매칭 서버 전이라 대기 화면만. 시그널링 붙일 때 연결되면 MATCH-03(매칭 성공)으로 넘긴다.
+class _MatchWaiting extends StatelessWidget {
+  const _MatchWaiting({required this.other});
+  final String other;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      leading: IconButton(icon: const Icon(LucideIcons.x), tooltip: '닫기', onPressed: () => Navigator.of(context).pop()),
+    ),
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: .center,
+                  spacing: HanaSpace.sm,
+                  children: [
+                    const PenguinMascot(Penguin.looking, width: 140),
+                    const SizedBox(height: HanaSpace.sm),
+                    Text('$other 원어민을 찾고 있어요', style: HanaText.section),
+                    Text(other == '일본어' ? '相手を探しています' : '상대를 찾고 있어요', style: HanaText.sub),
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const .fromLTRB(24, 0, 24, 16),
+                child: ShadButton.secondary(
+                  width: double.infinity,
+                  height: 56,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('그만 찾기', style: TextStyle(fontSize: 17, fontWeight: .w600)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 // ───────────────────────── 게시판 ─────────────────────────

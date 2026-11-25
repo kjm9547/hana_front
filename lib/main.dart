@@ -4,7 +4,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'api.dart';
 import 'home.dart';
-import 'palette_switcher.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -15,19 +14,12 @@ class HanaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: currentPalette,
-      builder: (context, palette, _) => ShadApp(
-        title: 'Hana',
-        navigatorKey: hanaNavigatorKey,
-        theme: hanaTheme(palette),
-        themeMode: ThemeMode.light, // ponytail: 다크모드는 토큰 확정 후
-        materialThemeBuilder: hanaMaterialTheme,
-        home: const AuthScreen(),
-        builder: (context, child) => kDebugMode
-            ? Stack(children: [child!, const Positioned(right: 16, bottom: 96, child: PaletteSwitcher())])
-            : child!,
-      ),
+    return ShadApp(
+      title: 'Hana',
+      theme: hanaTheme,
+      themeMode: ThemeMode.light, // ponytail: 다크모드는 토큰 확정 후
+      materialThemeBuilder: hanaMaterialTheme,
+      home: const AuthScreen(),
     );
   }
 }
@@ -85,8 +77,10 @@ class _AuthScreenState extends State<AuthScreen> {
               children: [
                 Expanded(
                   child: ListView(
-                    padding: const .fromLTRB(24, 48, 24, 24),
+                    padding: const .fromLTRB(24, 32, 24, 24),
                     children: [
+                      Align(alignment: .centerLeft, child: PenguinMascot(_signUp ? Penguin.hello : Penguin.idle, width: 80)),
+                      const SizedBox(height: 20),
                       Text(_signUp ? '반가워요!\n어떤 분인지 알려주세요' : 'Hana에서\n새로운 인연을 만나요', style: HanaText.title),
                       const SizedBox(height: 8),
                       Text(_signUp ? 'はじめまして！' : '一度の出会いが、ひとつの縁に', style: HanaText.sub),

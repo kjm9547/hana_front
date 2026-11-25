@@ -38,6 +38,8 @@ dependencies:
   http: ^1.6.0
   shadcn_ui: ^0.61.2
   socket_io_client: ^3.1.6
+  flutter_svg: ^2.5.0
+  lottie: ^3.8.2
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +64,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/mascot/
 
   # Pretendard JP v1.3.9 (한글+일본어, OFL). 쓰는 굵기만 번들 — 필요하면 Light/ExtraBold 추가
   fonts:

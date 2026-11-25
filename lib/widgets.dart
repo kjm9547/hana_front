@@ -1,8 +1,28 @@
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'theme.dart';
 
 const langLabel = {'ko': '한국어', 'ja': '日本語'};
+
+/// 마스코트 펭귄 표정. 원본은 design/mascot/gen.js → assets/mascot
+enum Penguin { idle, hello, sideeye, surprised, looking }
+
+/// 화면마다 한 마리만. [Penguin.looking]은 두리번거리는 Lottie 루프(동작 줄이기 설정이면 멈춤).
+class PenguinMascot extends StatelessWidget {
+  const PenguinMascot(this.pose, {super.key, this.width = 96});
+  final Penguin pose;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final height = width * 280 / 240;
+    return pose == Penguin.looking
+        ? Lottie.asset('assets/mascot/looking.json', width: width, height: height, animate: !MediaQuery.disableAnimationsOf(context))
+        : SvgPicture.asset('assets/mascot/${pose.name}.svg', width: width, height: height);
+  }
+}
 
 /// 사진이 생기기 전까지 쓰는 이니셜 아바타. 장식 없이 중립 회색.
 class InitialAvatar extends StatelessWidget {
@@ -129,11 +149,11 @@ class TodayPhraseCard extends StatelessWidget {
     final learnJa = myLang == 'ko';
     final fg = onDark ? Colors.white : HanaColors.grey900;
     final dim = onDark ? Colors.white.withValues(alpha: 0.7) : HanaColors.grey700;
-    final accent = onDark ? Colors.white : context.primary;
+    final accent = onDark ? Colors.white : HanaColors.accent;
     return Container(
       padding: const .all(HanaSpace.xl),
       decoration: BoxDecoration(
-        color: onDark ? Colors.white.withValues(alpha: 0.1) : context.primarySoft,
+        color: onDark ? Colors.white.withValues(alpha: 0.1) : HanaColors.accentSoft,
         borderRadius: .circular(20),
       ),
       child: Column(
@@ -173,6 +193,8 @@ class EmptyState extends StatelessWidget {
     child: Column(
       spacing: HanaSpace.sm,
       children: [
+        const PenguinMascot(Penguin.idle, width: 120),
+        const SizedBox(height: HanaSpace.sm),
         Text(title, style: HanaText.section, textAlign: .center),
         Text(subtitle, style: HanaText.sub, textAlign: .center),
         if (action != null) ...[const SizedBox(height: HanaSpace.lg), action!],
@@ -181,16 +203,27 @@ class EmptyState extends StatelessWidget {
   );
 }
 
-/// 채팅 말풍선: 내 메시지는 오른쪽 포인트 컬러, 상대는 왼쪽 회색
+/// 채팅 말풍선: 내 메시지는 오른쪽 포인트 컬러, 상대는 왼쪽 회색.
+/// [time]은 말풍선 안쪽 아래 옆에 작게 (내 말은 왼쪽, 상대 말은 오른쪽).
 class ChatBubble extends StatelessWidget {
-  const ChatBubble(this.text, {super.key, required this.mine});
+  const ChatBubble(this.text, {super.key, required this.mine, this.time});
   final String text;
   final bool mine;
+  final String? time;
 
   @override
-  Widget build(BuildContext context) => Align(
-    alignment: mine ? .centerRight : .centerLeft,
-    child: ConstrainedBox(
+  Widget build(BuildContext context) {
+    final bubble = Flexible(child: _bubble(context));
+    final stamp = time == null ? null : Text(time!, style: HanaText.caption.copyWith(fontSize: 11));
+    return Row(
+      mainAxisAlignment: mine ? .end : .start,
+      crossAxisAlignment: .end,
+      spacing: HanaSpace.xs,
+      children: [if (mine && stamp != null) stamp, bubble, if (!mine && stamp != null) stamp],
+    );
+  }
+
+  Widget _bubble(BuildContext context) => ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 280),
       child: Container(
         padding: const .symmetric(horizontal: 14, vertical: 10),
@@ -205,6 +238,5 @@ class ChatBubble extends StatelessWidget {
         ),
         child: Text(text, style: HanaText.sub.copyWith(color: mine ? Colors.white : HanaColors.grey900)),
       ),
-    ),
-  );
+    );
 }
