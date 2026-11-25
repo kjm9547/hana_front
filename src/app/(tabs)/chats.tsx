@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { Fragment } from 'react';
-import { Text } from 'react-native';
 
 import type { Conversation } from '@/lib/api';
 import { openChatRoom, useChatEvents } from '@/lib/chat';
 import { useApi, useMe } from '@/lib/session';
 import { chatTime } from '@/lib/time';
-import { Button, EmptyState, ListRow, RowDivider, Spinner, TabPage } from '@/ui/components';
-import { colors, text } from '@/ui/theme';
+import { Button } from '@/ui/button';
+import { EmptyState, ListRow, RowDivider, Spinner, TabPage } from '@/ui/hana';
+import { Text } from '@/ui/text';
 
 /** CHAT-01 대화방 목록 */
 export default function ChatsTab() {
@@ -23,7 +23,11 @@ export default function ChatsTab() {
         <EmptyState
           title="아직 대화가 없어요"
           subtitle="메인에서 친구를 골라 첫 인사를 건네보세요"
-          action={<Button variant="outline" size="md" title="친구 찾기" onPress={() => router.navigate('/')} />}
+          action={
+            <Button variant="outline" onPress={() => router.navigate('/')}>
+              <Text>친구 찾기</Text>
+            </Button>
+          }
         />
       ) : (
         res.items.map((c, i) => {
@@ -34,11 +38,11 @@ export default function ChatsTab() {
               <ListRow
                 name={c.partner.nickname}
                 onPress={() => openChatRoom(c)}
-                right={last && <Text style={text.caption}>{chatTime(last.createdAt)}</Text>}>
-                <Text style={text.body} numberOfLines={1}>
+                right={last && <Text variant="caption">{chatTime(last.createdAt)}</Text>}>
+                <Text variant="body" numberOfLines={1}>
                   {c.partner.nickname}
                 </Text>
-                <Text style={[text.sub, !last && { color: colors.grey500 }]} numberOfLines={1}>
+                <Text variant="sub" className={last ? '' : 'text-muted-foreground'} numberOfLines={1}>
                   {last ? `${last.senderId === me.id ? '나: ' : ''}${last.body}` : '첫 인사를 건네보세요'}
                 </Text>
               </ListRow>

@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useMe } from '@/lib/session';
-import { Button, Mascot, SectionHeader, TabPage } from '@/ui/components';
-import { colors, font, space, text } from '@/ui/theme';
+import { Button } from '@/ui/button';
+import { Mascot, SectionHeader, TabPage } from '@/ui/hana';
+import { Text } from '@/ui/text';
 
 /** MATCH-01 랜덤매칭 안내 */
 export default function MatchTab() {
@@ -14,15 +15,25 @@ export default function MatchTab() {
   return (
     <TabPage
       title="랜덤매칭"
-      bottom={<Button title="랜덤 통화 시작" onPress={() => router.push('/match-waiting')} />}>
+      bottom={
+        <Button size="lg" onPress={() => router.push('/match-waiting')}>
+          <Text>랜덤 통화 시작</Text>
+        </Button>
+      }>
       <Mascot pose="sideeye" />
-      <Text style={[text.section, { marginTop: space.lg }]}>{`지금 접속한 ${other} 원어민과\n바로 통화해요`}</Text>
-      <Text style={[text.sub, { marginTop: space.sm }]}>처음엔 3분, 마음이 맞으면 더 길게</Text>
+      <Text variant="section" className="mt-4">{`지금 접속한 ${other} 원어민과\n바로 통화해요`}</Text>
+      <Text variant="sub" className="mt-2">
+        처음엔 3분, 마음이 맞으면 더 길게
+      </Text>
       <SectionHeader title="이렇게 진행돼요" />
       {steps.map((step, i) => (
-        <View key={step} style={{ flexDirection: 'row', gap: space.md, paddingVertical: space.sm }}>
-          <Text style={[text.body, { width: 20, color: colors.primary }]}>{i + 1}</Text>
-          <Text style={[text.body, { flex: 1, fontFamily: font.medium }]}>{step}</Text>
+        <View key={step} className="flex-row gap-3 py-2">
+          <Text variant="body" className="w-5 text-primary">
+            {i + 1}
+          </Text>
+          <Text variant="body" className="flex-1 font-medium">
+            {step}
+          </Text>
         </View>
       ))}
     </TabPage>

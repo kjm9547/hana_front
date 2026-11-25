@@ -1,14 +1,19 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronLeft, Send } from 'lucide-react-native';
+import { FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import { api, type Lang, type Message, type Page } from '@/lib/api';
 import { useChatEvents } from '@/lib/chat';
 import { useMe } from '@/lib/session';
 import { clockLabel, dayLabel, daysAgo } from '@/lib/time';
 import { showError } from '@/lib/toast';
-import { Avatar, ChatBubble, EmptyState, Icon, Input, langLabel, Screen, Spinner } from '@/ui/components';
-import { colors, radius, space, text } from '@/ui/theme';
+import { Button } from '@/ui/button';
+import { Avatar, ChatBubble, EmptyState, langLabel, Screen, Spinner } from '@/ui/hana';
+import { Icon } from '@/ui/icon';
+import { Input } from '@/ui/input';
+import { Separator } from '@/ui/separator';
+import { Text } from '@/ui/text';
 
 /** CHAT-02 채팅방. 보내기는 REST, 받기는 소켓. */
 export default function ChatRoomScreen() {
@@ -70,36 +75,36 @@ export default function ChatRoomScreen() {
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={() => router.back()} hitSlop={8} style={styles.back}>
-          <Icon name="chevron-left" size={24} color={colors.grey900} />
-        </Pressable>
+      <View className="flex-row items-center gap-2 border-b border-border py-2 pr-page pl-2">
+        <Button variant="ghost" size="icon" aria-label="뒤로" onPress={() => router.back()} className="size-10">
+          <Icon as={ChevronLeft} className="size-6 text-foreground" />
+        </Button>
         <Avatar name={params.nickname} size={36} />
-        <View style={{ flex: 1 }}>
-          <Text style={text.body} numberOfLines={1}>
+        <View className="flex-1">
+          <Text variant="body" numberOfLines={1}>
             {params.nickname}
           </Text>
-          <Text style={text.caption}>{langLabel[params.nativeLang]} 원어민</Text>
+          <Text variant="caption">{langLabel[params.nativeLang]} 원어민</Text>
         </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {messages === null ? (
-          <View style={{ flex: 1 }}>
+          <View className="flex-1">
             <Spinner />
           </View>
         ) : messages.length === 0 ? (
-          <View style={{ flex: 1 }}>
+          <View className="flex-1">
             <EmptyState title={`${params.nickname}님과의 첫 대화예요`} subtitle="정성 어린 첫 인사를 건네보세요" />
           </View>
         ) : (
           <MessageList messages={messages} meId={me.id} onEndReached={loadOlder} />
         )}
 
-        <View style={styles.inputBar}>
+        <View className="flex-row items-center gap-2 border-t border-border py-2 pr-3 pl-page">
           {/* ponytail: 한 줄 입력이라 Enter로 바로 보낸다. 여러 줄이 필요해지면 multiline + 보내기 버튼만으로. */}
           <Input
-            style={{ flex: 1 }}
+            className="flex-1"
             value={draft}
             onChangeText={setDraft}
             placeholder="메시지를 입력하세요"
@@ -107,14 +112,9 @@ export default function ChatRoomScreen() {
             onSubmitEditing={send}
             submitBehavior="submit"
           />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="보내기"
-            disabled={sending}
-            onPress={send}
-            style={({ pressed }) => [styles.send, (pressed || sending) && { opacity: 0.6 }]}>
-            <Icon name="send" size={20} color={colors.white} />
-          </Pressable>
+          <Button size="icon" aria-label="보내기" disabled={sending} onPress={send}>
+            <Icon as={Send} className="text-primary-foreground" />
+          </Button>
         </View>
       </KeyboardAvoidingView>
     </Screen>
@@ -140,7 +140,7 @@ function MessageList({ messages, meId, onEndReached }: { messages: Message[]; me
       keyExtractor={(m) => String(m.id)}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.3}
-      contentContainerStyle={styles.list}
+      contentContainerClassName="px-page py-4"
       renderItem={({ item: m, index: i }) => {
         // 최신순이라 i+1이 바로 앞(더 오래된) 메시지, i-1이 바로 뒤 메시지
         const prev = messages[i + 1];
@@ -152,7 +152,7 @@ function MessageList({ messages, meId, onEndReached }: { messages: Message[]; me
           <View>
             {newDay && <DayDivider label={dayLabel(t, now)} />}
             {/* 말하는 사람이 바뀌면 넓게, 이어 보낸 묶음은 촘촘하게 */}
-            <View style={{ paddingTop: newDay ? 0 : sameGroup(prev) ? space.xs : space.md }}>
+            <View className={newDay ? '' : sameGroup(prev) ? 'pt-1' : 'pt-3'}>
               <ChatBubble body={m.body} mine={m.senderId === meId} time={sameGroup(next) ? undefined : clockLabel(t)} />
             </View>
           </View>
@@ -165,45 +165,10 @@ function MessageList({ messages, meId, onEndReached }: { messages: Message[]; me
 /** 날짜가 바뀌는 곳에 넣는 가운데 정렬 구분선 */
 function DayDivider({ label }: { label: string }) {
   return (
-    <View style={styles.day}>
-      <View style={styles.dayLine} />
-      <Text style={text.caption}>{label}</Text>
-      <View style={styles.dayLine} />
+    <View className="flex-row items-center gap-3 py-4">
+      <Separator className="flex-1" />
+      <Text variant="caption">{label}</Text>
+      <Separator className="flex-1" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    paddingLeft: space.sm,
-    paddingRight: space.page,
-    paddingVertical: space.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.grey200,
-  },
-  back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  list: { paddingHorizontal: space.page, paddingVertical: space.lg },
-  day: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg },
-  dayLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.grey200 },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    paddingLeft: space.page,
-    paddingRight: space.md,
-    paddingVertical: space.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.grey200,
-  },
-  send: {
-    width: 48,
-    height: 48,
-    borderRadius: radius,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

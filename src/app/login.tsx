@@ -1,11 +1,18 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 import { api, type Lang } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { showError } from '@/lib/toast';
-import { Button, ChoiceCard, Input, langLabel, Mascot, Screen } from '@/ui/components';
-import { space, text } from '@/ui/theme';
+import { Button } from '@/ui/button';
+import { ChoiceCard, langLabel, Mascot, Screen } from '@/ui/hana';
+import { Input } from '@/ui/input';
+import { Text } from '@/ui/text';
+
+const TEST_ACCOUNTS = [
+  ['minsu@hana.dev', '민수 · 한국어'],
+  ['yuki@hana.dev', 'ゆき · 日本語'],
+] as const;
 
 /** AUTH-01 로그인 / AUTH-02 가입 */
 export default function LoginScreen() {
@@ -31,17 +38,17 @@ export default function LoginScreen() {
 
   return (
     <Screen>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerClassName="px-6 pt-8 pb-6" keyboardShouldPersistTaps="handled">
           <Mascot pose={signUp ? 'hello' : 'idle'} width={80} />
-          <Text style={[text.title, { marginTop: 20 }]}>
+          <Text variant="title" className="mt-5">
             {signUp ? '반가워요!\n어떤 분인지 알려주세요' : 'Hana에서\n새로운 인연을 만나요'}
           </Text>
-          <Text style={[text.sub, { marginTop: space.sm, marginBottom: 36 }]}>
+          <Text variant="sub" className="mt-2 mb-9">
             {signUp ? 'はじめまして！' : '一度の出会いが、ひとつの縁に'}
           </Text>
 
-          <View style={{ gap: space.md }}>
+          <View className="gap-3">
             <Input
               value={email}
               onChangeText={setEmail}
@@ -56,8 +63,10 @@ export default function LoginScreen() {
 
           {signUp && (
             <>
-              <Text style={[text.caption, { marginTop: 28, marginBottom: 10 }]}>모국어를 골라주세요</Text>
-              <View style={{ flexDirection: 'row', gap: 10 }} accessibilityRole="radiogroup">
+              <Text variant="caption" className="mt-7 mb-2.5">
+                모국어를 골라주세요
+              </Text>
+              <View className="flex-row gap-2.5" role="radiogroup">
                 {(['ko', 'ja'] as const).map((l) => (
                   <ChoiceCard
                     key={l}
@@ -73,35 +82,31 @@ export default function LoginScreen() {
         </ScrollView>
 
         {/* 토스식 하단 고정 CTA */}
-        <View style={styles.footer}>
-          <Button title={signUp ? '가입하기' : '로그인'} onPress={() => submit()} disabled={busy} />
-          <Button
-            variant="ghost"
-            size="md"
-            title={signUp ? '이미 계정이 있어요' : '처음이에요 · 가입하기'}
-            onPress={() => setSignUp(!signUp)}
-          />
+        <View className="px-6 pb-4">
+          <Button size="lg" onPress={() => submit()} disabled={busy}>
+            <Text>{signUp ? '가입하기' : '로그인'}</Text>
+          </Button>
+          <Button variant="ghost" onPress={() => setSignUp(!signUp)}>
+            <Text>{signUp ? '이미 계정이 있어요' : '처음이에요 · 가입하기'}</Text>
+          </Button>
           {/* ponytail: 개발용 빠른 로그인 (개발 빌드에만). 서버에서 npm run seed 로 만든 계정이 있어야 동작. */}
           {__DEV__ && (
-            <View style={styles.quick}>
-              <Text style={text.caption}>테스트 로그인</Text>
-              {[
-                ['minsu@hana.dev', '민수 · 한국어'],
-                ['yuki@hana.dev', 'ゆき · 日本語'],
-              ].map(([e, label]) => (
+            <View className="flex-row items-center justify-center gap-1.5">
+              <Text variant="caption">테스트 로그인</Text>
+              {TEST_ACCOUNTS.map(([e, label]) => (
                 <Button
                   key={e}
                   variant="outline"
                   size="sm"
-                  title={label}
                   disabled={busy}
                   onPress={() => {
                     setSignUp(false);
                     setEmail(e);
                     setPassword('password123');
                     submit({ email: e, password: 'password123' }, false);
-                  }}
-                />
+                  }}>
+                  <Text>{label}</Text>
+                </Button>
               ))}
             </View>
           )}
@@ -110,9 +115,3 @@ export default function LoginScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  body: { paddingHorizontal: space.xl, paddingTop: space.xxl, paddingBottom: space.xl },
-  footer: { paddingHorizontal: space.xl, paddingBottom: space.lg },
-  quick: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-});

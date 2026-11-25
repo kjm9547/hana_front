@@ -1,9 +1,13 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
+import { Pressable, View } from 'react-native';
 
 import { useSession } from '@/lib/session';
-import { Avatar, Divider, Icon, langLabel, SectionHeader, TabPage } from '@/ui/components';
-import { colors, font, space, text } from '@/ui/theme';
+import { cn } from '@/lib/utils';
+import { Avatar, langLabel, SectionHeader, TabPage } from '@/ui/hana';
+import { Icon } from '@/ui/icon';
+import { Separator } from '@/ui/separator';
+import { Text } from '@/ui/text';
 
 /** PROF-01 내 프로필 */
 export default function ProfileTab() {
@@ -11,22 +15,22 @@ export default function ProfileTab() {
   if (!me) return null; // 로그아웃 직후 화면이 사라지기 전 한 번
   return (
     <TabPage title="프로필">
-      <View style={styles.head}>
+      <View className="flex-row items-center gap-4">
         <Avatar name={me.nickname} size={72} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={text.section}>{me.nickname}</Text>
-          <Text style={text.caption}>
+        <View className="flex-1 gap-0.5">
+          <Text variant="section">{me.nickname}</Text>
+          <Text variant="caption">
             {langLabel[me.nativeLang]} 원어민 · {me.email}
           </Text>
         </View>
       </View>
-      <Text style={[text.sub, { marginTop: space.lg }, !me.bio && { color: colors.grey500 }]}>
+      <Text variant="sub" className={cn('mt-4', !me.bio && 'text-muted-foreground')}>
         {me.bio || '아직 자기소개가 없어요'}
       </Text>
 
       <SectionHeader title="계정" />
       <MenuRow label="자기소개 수정" onPress={() => router.push('/edit-bio')} />
-      <Divider />
+      <Separator />
       <MenuRow label="로그아웃" danger onPress={signOut} />
     </TabPage>
   );
@@ -34,17 +38,11 @@ export default function ProfileTab() {
 
 function MenuRow({ label, danger, onPress }: { label: string; danger?: boolean; onPress: () => void }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.menu, pressed && { backgroundColor: colors.grey50 }]}>
-      <Text style={[text.body, { flex: 1, fontFamily: font.medium }, danger && { color: colors.danger }]}>{label}</Text>
-      {!danger && <Icon name="chevron-right" size={20} color={colors.grey500} />}
+    <Pressable role="button" onPress={onPress} className="flex-row items-center py-4 active:bg-grey-50">
+      <Text variant="body" className={cn('flex-1 font-medium', danger && 'text-destructive')}>
+        {label}
+      </Text>
+      {!danger && <Icon as={ChevronRight} className="text-muted-foreground" />}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-  menu: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.lg },
-});

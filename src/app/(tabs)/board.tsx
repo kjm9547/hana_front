@@ -1,4 +1,4 @@
-import { EmptyState, TabPage } from '@/ui/components';
+import { EmptyState, TabPage } from '@/ui/hana';
 
 /** BOARD-01 게시판 (준비 중) */
 export default function BoardTab() {

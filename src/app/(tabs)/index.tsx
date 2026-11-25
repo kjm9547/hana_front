@@ -4,7 +4,7 @@ import { api, type Conversation, type Page, type Phrase, type User } from '@/lib
 import { openChatRoom } from '@/lib/chat';
 import { useApi, useMe } from '@/lib/session';
 import { showError } from '@/lib/toast';
-import { EmptyState, PersonRow, RowDivider, SectionHeader, Spinner, TabPage, TodayPhraseCard } from '@/ui/components';
+import { EmptyState, PersonRow, RowDivider, SectionHeader, Spinner, TabPage, TodayPhraseCard } from '@/ui/hana';
 
 /** HOME-01 메인: 오늘의 표현 + 언어교환 친구 목록 */
 export default function MainTab() {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
 
-import { colors, space, text } from '@/ui/theme';
+import { cn } from '@/lib/utils';
+import { Text } from '@/ui/text';
 
 type Toast = { message: string; error?: boolean };
 let show: (t: Toast) => void = () => {};
@@ -23,16 +24,14 @@ export function ToastHost() {
   }, []);
   if (!toast) return null;
   return (
-    <View pointerEvents="none" style={styles.wrap}>
-      <View style={[styles.toast, toast.error && { backgroundColor: colors.danger }]} accessibilityLiveRegion="polite">
-        <Text style={[text.sub, styles.text]}>{toast.message}</Text>
+    <View pointerEvents="none" className="absolute inset-x-0 bottom-24 items-center px-page">
+      <View
+        aria-live="polite"
+        className={cn('max-w-[440px] rounded-lg px-4 py-3', toast.error ? 'bg-destructive' : 'bg-grey-900')}>
+        <Text variant="sub" className="text-white">
+          {toast.message}
+        </Text>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.page },
-  toast: { backgroundColor: colors.grey900, borderRadius: 12, paddingVertical: space.md, paddingHorizontal: space.lg, maxWidth: 440 },
-  text: { color: colors.white },
-});
