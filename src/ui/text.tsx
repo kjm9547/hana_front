@@ -5,22 +5,23 @@ import { Platform, Text as RNText, type Role } from 'react-native';
 
 import { cn } from '@/lib/utils';
 
-// Reusables의 Text를 Hana 글자 단계로 바꾼 것. 글자는 이 variant들 밖의 조합을 쓰지 않는다.
+// Reusables의 Text를 Hana 글자 단계(34 · 20 · 16 · 14 · 13)로 바꾼 것. 글자는 이 variant들 밖의 조합을 쓰지 않는다.
 const textVariants = cva(cn('font-normal text-body text-foreground', Platform.select({ web: 'select-text' })), {
   variants: {
     variant: {
+      /** 본문 16 / 400 */
       default: '',
-      /** 탭 제목 (iOS large title 계열) */
-      title: 'font-bold text-title',
-      /** 오늘의 표현처럼 화면에서 가장 크게 보여줄 문장 */
-      display: 'font-bold text-display',
-      /** 섹션 제목 */
-      section: 'font-bold text-section',
-      /** 목록의 이름, 본문 강조 */
-      body: 'font-semibold text-body',
-      /** 설명, 자기소개 */
-      sub: 'text-sub text-grey-700',
-      /** 메타 정보 (언어, 시간, 개수) */
+      /** 화면의 큰 글씨 34. 화면당 한 번 */
+      display: 'font-bold text-display tracking-[-0.68px]',
+      /** 제목 20 */
+      title: 'font-bold text-title tracking-[-0.2px]',
+      /** 이름처럼 본문에서 강조할 것 16 / 600 */
+      strong: 'font-semibold',
+      /** 설명, 자기소개 16 / 회색 */
+      muted: 'text-grey-700',
+      /** 글이 많은 화면의 본문 14 (게시판 글·댓글) */
+      sub: 'text-sub',
+      /** 메타 정보 (언어, 시간, 개수) 13 */
       caption: 'font-medium text-caption text-muted-foreground',
     },
   },
@@ -29,7 +30,7 @@ const textVariants = cva(cn('font-normal text-body text-foreground', Platform.se
 
 type TextVariant = NonNullable<VariantProps<typeof textVariants>['variant']>;
 
-const ROLE: Partial<Record<TextVariant, Role>> = { title: 'heading', section: 'heading' };
+const ROLE: Partial<Record<TextVariant, Role>> = { display: 'heading', title: 'heading' };
 
 /** 버튼처럼 안쪽 글자 스타일을 정해 주는 부모가 쓴다 */
 const TextClassContext = React.createContext<string | undefined>(undefined);

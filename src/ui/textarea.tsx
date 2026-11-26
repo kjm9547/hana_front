@@ -12,10 +12,9 @@ function Textarea({
   return (
     <TextInput
       className={cn(
-        'min-h-32 w-full rounded-lg border border-input bg-background px-4 py-3 font-normal text-body text-foreground',
-        'focus:border-primary',
+        'min-h-32 w-full rounded-md bg-input p-5 font-normal text-body text-foreground',
         props.editable === false && 'opacity-50',
-        Platform.select({ web: 'resize-none outline-none' }),
+        Platform.select({ web: 'resize-none outline-none focus-visible:ring-2 focus-visible:ring-ring/50' }),
         className,
       )}
       placeholderTextColorClassName="accent-muted-foreground"

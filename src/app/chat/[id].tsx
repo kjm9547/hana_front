@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, Send } from 'lucide-react-native';
+import { ArrowUp, ChevronLeft } from 'lucide-react-native';
 import { FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import { api, type Lang, type Message, type Page } from '@/lib/api';
@@ -9,13 +9,12 @@ import { useMe } from '@/lib/session';
 import { clockLabel, dayLabel, daysAgo } from '@/lib/time';
 import { showError } from '@/lib/toast';
 import { Button } from '@/ui/button';
-import { Avatar, ChatBubble, EmptyState, langLabel, Screen, Spinner } from '@/ui/hana';
+import { ChatBubble, EmptyState, Screen, Spinner } from '@/ui/hana';
 import { Icon } from '@/ui/icon';
 import { Input } from '@/ui/input';
-import { Separator } from '@/ui/separator';
 import { Text } from '@/ui/text';
 
-/** CHAT-02 채팅방. 보내기는 REST, 받기는 소켓. */
+/** CHAT-03 대화 상세. 보내기는 REST, 받기는 소켓. */
 export default function ChatRoomScreen() {
   const me = useMe();
   const params = useLocalSearchParams<{ id: string; nickname: string; nativeLang: Lang }>();
@@ -75,17 +74,13 @@ export default function ChatRoomScreen() {
 
   return (
     <Screen>
-      <View className="flex-row items-center gap-2 border-b border-border py-2 pr-page pl-2">
-        <Button variant="ghost" size="icon" aria-label="뒤로" onPress={() => router.back()} className="size-10">
+      <View className="h-14 flex-row items-center gap-1 pr-page pl-2">
+        <Button variant="ghost" size="icon" aria-label="대화 목록으로" onPress={() => router.back()}>
           <Icon as={ChevronLeft} className="size-6 text-foreground" />
         </Button>
-        <Avatar name={params.nickname} size={36} />
-        <View className="flex-1">
-          <Text variant="body" numberOfLines={1}>
-            {params.nickname}
-          </Text>
-          <Text variant="caption">{langLabel[params.nativeLang]} 원어민</Text>
-        </View>
+        <Text variant="strong" className="flex-1 font-bold" numberOfLines={1}>
+          {params.nickname}
+        </Text>
       </View>
 
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -101,19 +96,19 @@ export default function ChatRoomScreen() {
           <MessageList messages={messages} meId={me.id} onEndReached={loadOlder} />
         )}
 
-        <View className="flex-row items-center gap-2 border-t border-border py-2 pr-3 pl-page">
+        <View className="flex-row items-center gap-2 px-3 pt-2 pb-3">
           {/* ponytail: 한 줄 입력이라 Enter로 바로 보낸다. 여러 줄이 필요해지면 multiline + 보내기 버튼만으로. */}
           <Input
-            className="flex-1"
+            className="h-11 flex-1 rounded-full px-4"
             value={draft}
             onChangeText={setDraft}
-            placeholder="메시지를 입력하세요"
+            placeholder="메시지 보내기"
             maxLength={1000}
             onSubmitEditing={send}
             submitBehavior="submit"
           />
           <Button size="icon" aria-label="보내기" disabled={sending} onPress={send}>
-            <Icon as={Send} className="text-primary-foreground" />
+            <Icon as={ArrowUp} />
           </Button>
         </View>
       </KeyboardAvoidingView>
@@ -162,13 +157,11 @@ function MessageList({ messages, meId, onEndReached }: { messages: Message[]; me
   );
 }
 
-/** 날짜가 바뀌는 곳에 넣는 가운데 정렬 구분선 */
+/** 날짜가 바뀌는 곳에 넣는 가운데 날짜 (선 없이 글자만) */
 function DayDivider({ label }: { label: string }) {
   return (
-    <View className="flex-row items-center gap-3 py-4">
-      <Separator className="flex-1" />
-      <Text variant="caption">{label}</Text>
-      <Separator className="flex-1" />
-    </View>
+    <Text variant="caption" className="py-3 text-center">
+      {label}
+    </Text>
   );
 }
