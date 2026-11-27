@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/i18n';
 import { api } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { showError, showInfo } from '@/lib/toast';
@@ -12,6 +13,7 @@ import { FieldScreen, Mascot } from '@/ui/hana';
 import { Input } from '@/ui/input';
 import { Text } from '@/ui/text';
 
+// 개발 빌드 전용이라 번역하지 않는다
 const TEST_ACCOUNTS = [
   ['minsu@hana.dev', '민수 · 한국어'],
   ['yuki@hana.dev', 'ゆき · 日本語'],
@@ -19,10 +21,10 @@ const TEST_ACCOUNTS = [
 
 /** 소셜 버튼: [글자, 버튼 색, 글자 색]. Apple 로그인은 App Store 심사 기준 4.8 때문에 iOS에만, 맨 위에. */
 const SOCIAL: [label: string, button: string, text: string][] = [
-  ...(Platform.OS === 'ios' ? [['Apple로 계속하기', 'bg-apple active:bg-apple/80', 'text-white'] as [string, string, string]] : []),
-  ['Google로 계속하기', 'border border-google-border bg-white active:bg-grey-100', 'text-grey-900'],
-  ['LINE으로 계속하기', 'bg-line active:bg-line/90', 'text-white'],
-  ['카카오로 계속하기', 'bg-kakao active:bg-kakao/90', 'text-black/85'],
+  ...(Platform.OS === 'ios' ? [[t.auth.apple, 'bg-apple active:bg-apple/80', 'text-white'] as [string, string, string]] : []),
+  [t.auth.google, 'border border-google-border bg-white active:bg-grey-100', 'text-grey-900'],
+  [t.auth.line, 'bg-line active:bg-line/90', 'text-white'],
+  [t.auth.kakao, 'bg-kakao active:bg-kakao/90', 'text-black/85'],
 ];
 // iOS는 버튼이 5개라 조금 낮춘다 (46 / 48)
 const SOCIAL_H = Platform.OS === 'ios' ? 'h-[46px]' : 'h-12';
@@ -97,12 +99,12 @@ function Landing(props: {
             <>
               {SOCIAL.map(([label, button, text]) => (
                 // ponytail: 서버에 소셜 로그인(OAuth)이 붙기 전까지 안내만. 로고는 브랜드 가이드 파일을 받으면 왼쪽에.
-                <Button key={label} className={cn(SOCIAL_H, button)} onPress={() => showInfo('소셜 로그인은 곧 열려요')}>
+                <Button key={label} className={cn(SOCIAL_H, button)} onPress={() => showInfo(t.auth.socialSoon)}>
                   <Text className={cn('font-semibold', text)}>{label}</Text>
                 </Button>
               ))}
               <Button className={cn(SOCIAL_H, 'bg-ink active:bg-ink/90')} onPress={() => props.onMode('email')}>
-                <Text className="font-semibold">Hana로 계속하기</Text>
+                <Text className="font-semibold">{t.auth.hana}</Text>
               </Button>
             </>
           ) : (
@@ -111,8 +113,8 @@ function Landing(props: {
                 className="h-12 bg-white"
                 value={props.email}
                 onChangeText={props.onEmail}
-                placeholder="이메일"
-                aria-label="이메일"
+                placeholder={t.auth.email}
+                aria-label={t.auth.email}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
@@ -121,25 +123,25 @@ function Landing(props: {
                 className="h-12 bg-white"
                 value={props.password}
                 onChangeText={props.onPassword}
-                placeholder="비밀번호"
-                aria-label="비밀번호"
+                placeholder={t.auth.password}
+                aria-label={t.auth.password}
                 secureTextEntry
               />
               <Button className="h-12 bg-ink active:bg-ink/90" onPress={props.onLogin} disabled={props.busy}>
-                <Text className="font-semibold">로그인</Text>
+                <Text className="font-semibold">{t.auth.login}</Text>
               </Button>
               <Text
                 role="link"
                 variant="caption"
                 className="self-center py-2.5 font-bold text-ink"
                 onPress={() => props.onMode('social')}>
-                다른 방법으로 계속하기
+                {t.auth.otherWays}
               </Text>
               {/* ponytail: 개발용 빠른 로그인 (개발 빌드에만). 서버에서 npm run seed 로 만든 계정이 있어야 동작. */}
               {__DEV__ && (
                 <View className="flex-row items-center justify-center gap-1.5">
                   <Text variant="caption" className="text-white">
-                    테스트 로그인
+                    {t.auth.testLogin}
                   </Text>
                   {TEST_ACCOUNTS.map(([e, label]) => (
                     <Button
@@ -159,14 +161,16 @@ function Landing(props: {
 
         <View className="items-center gap-2 pt-6" style={{ paddingBottom: insets.bottom + 20 }}>
           <Text variant="caption" className="text-ink">
-            계정이 없으신가요?{' '}
+            {t.auth.noAccount}{' '}
             <Text role="link" className="font-bold text-caption text-ink underline" onPress={() => router.push('/signup')}>
-              회원가입
+              {t.auth.signUp}
             </Text>
           </Text>
           {/* ponytail: 약관 페이지가 생기면 링크로 */}
           <Text variant="caption" className="font-normal text-ink">
-            계속하면 <Text className="font-bold text-caption text-ink">약관</Text>에 동의하게 돼요
+            {t.auth.termsBefore}
+            <Text className="font-bold text-caption text-ink">{t.auth.terms}</Text>
+            {t.auth.termsAfter}
           </Text>
         </View>
       </KeyboardAvoidingView>

@@ -6,15 +6,14 @@ import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { type Edge, SafeAreaView as RNSafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
-import type { Lang, User } from '@/lib/api';
+import type { User } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 import { LookingPenguin } from './looking';
 import { Text } from './text';
 
 // Hana에서만 쓰는 화면 부품. 버튼·입력 같은 기본 부품은 Reusables(button.tsx, input.tsx …)를 쓴다.
-
-export const langLabel: Record<Lang, string> = { ko: '한국어', ja: '日本語' };
+// 화면 문구는 부품 안에 쓰지 않고 화면에서 t(@/i18n)로 넘긴다.
 
 const SafeAreaView = withUniwind(RNSafeAreaView);
 
@@ -98,7 +97,7 @@ export function Spinner() {
   return <ActivityIndicator colorClassName="accent-primary" className="mt-20" />;
 }
 
-/** 선택지: 회색 면 한 줄, 선택되면 포인트 면 + 흰 글자 (가입 퍼널의 모국어·성별) */
+/** 선택지: 회색 면 한 줄, 선택되면 포인트 면 + 흰 글자 (가입 퍼널의 언어·성별) */
 export function Choice({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
     <Pressable
