@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { t } from '@/i18n';
 import { api } from '@/lib/api';
 import { useMe, useSession } from '@/lib/session';
 import { showError } from '@/lib/toast';
@@ -33,16 +34,16 @@ export default function EditBioScreen() {
     <Screen>
       <View className="flex-1 px-page pt-6">
         <Text variant="title" className="mb-5">
-          자기소개
+          {t.editBio.title}
         </Text>
-        <Textarea value={bio} onChangeText={setBio} placeholder="어떤 언어를, 왜 배우고 있는지 적어보세요" autoFocus />
+        <Textarea value={bio} onChangeText={setBio} placeholder={t.editBio.placeholder} aria-label={t.editBio.title} autoFocus />
       </View>
       <View className="flex-row gap-2 px-page pb-4">
         <Button variant="secondary" size="lg" className="flex-1" onPress={() => router.back()}>
-          <Text>취소</Text>
+          <Text>{t.common.cancel}</Text>
         </Button>
         <Button size="lg" className="flex-1" onPress={save} disabled={saving}>
-          <Text>저장</Text>
+          <Text>{t.editBio.save}</Text>
         </Button>
       </View>
     </Screen>

@@ -5,6 +5,7 @@ import { ImagePlus, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { api, type PostDetail, uploadImage } from '@/lib/api';
 import { showError } from '@/lib/toast';
 import { Button } from '@/ui/button';
@@ -63,14 +64,14 @@ export default function WriteScreen() {
   return (
     <Screen>
       <View className="h-14 flex-row items-center gap-1 pr-page pl-2">
-        <Button variant="ghost" size="icon" aria-label="닫기" onPress={() => router.back()}>
+        <Button variant="ghost" size="icon" aria-label={t.common.close} onPress={() => router.back()}>
           <Icon as={X} className="size-6 text-foreground" />
         </Button>
         <Text variant="strong" className="flex-1 font-bold">
-          글쓰기
+          {t.write.title}
         </Text>
         <Button className="px-4" disabled={!ok || busy} onPress={submit}>
-          <Text>올리기</Text>
+          <Text>{t.write.submit}</Text>
         </Button>
       </View>
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -79,21 +80,21 @@ export default function WriteScreen() {
             className="h-12 px-4 font-semibold text-sub"
             value={title}
             onChangeText={setTitle}
-            placeholder="제목"
-            aria-label="제목"
+            placeholder={t.write.titlePlaceholder}
+            aria-label={t.write.titlePlaceholder}
             maxLength={100}
           />
           <Textarea
             className="mt-3 flex-1 p-4 text-sub"
             value={body}
             onChangeText={setBody}
-            placeholder="한국어도 일본어도 괜찮아요"
-            aria-label="내용"
+            placeholder={t.write.bodyPlaceholder}
+            aria-label={t.write.body}
             maxLength={5000}
           />
 
           <Text variant="caption" className="mt-5 text-grey-700">
-            사진 {photos.length} / {MAX_PHOTOS}
+            {t.write.photos(photos.length, MAX_PHOTOS)}
           </Text>
           {/* 지우기 배지가 사진 밖으로 8 나와서 위·오른쪽 여백을 둔다 */}
           <ScrollView
@@ -104,7 +105,7 @@ export default function WriteScreen() {
             {photos.length < MAX_PHOTOS && (
               <Pressable
                 role="button"
-                aria-label="사진 추가"
+                aria-label={t.write.addPhoto}
                 onPress={addPhotos}
                 className="size-[72px] items-center justify-center rounded-md bg-grey-100 active:bg-grey-200">
                 <Icon as={ImagePlus} className="size-[22px] text-grey-700" />
@@ -120,7 +121,7 @@ export default function WriteScreen() {
                 )}
                 <Pressable
                   role="button"
-                  aria-label={`사진 ${i + 1} 빼기`}
+                  aria-label={t.write.removePhoto(i + 1)}
                   onPress={() => setPhotos((prev) => prev.filter((x) => x.key !== p.key))}
                   hitSlop={8}
                   className="absolute -top-2 -right-2 size-6 items-center justify-center rounded-full border-2 border-white bg-grey-900">

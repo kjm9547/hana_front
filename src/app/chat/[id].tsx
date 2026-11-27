@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowUp, ChevronLeft } from 'lucide-react-native';
 import { FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { api, type Lang, type Message, type Page } from '@/lib/api';
 import { useChatEvents } from '@/lib/chat';
 import { useMe } from '@/lib/session';
@@ -75,7 +76,7 @@ export default function ChatRoomScreen() {
   return (
     <Screen>
       <View className="h-14 flex-row items-center gap-1 pr-page pl-2">
-        <Button variant="ghost" size="icon" aria-label="대화 목록으로" onPress={() => router.back()}>
+        <Button variant="ghost" size="icon" aria-label={t.chat.back} onPress={() => router.back()}>
           <Icon as={ChevronLeft} className="size-6 text-foreground" />
         </Button>
         <Text variant="strong" className="flex-1 font-bold" numberOfLines={1}>
@@ -90,7 +91,7 @@ export default function ChatRoomScreen() {
           </View>
         ) : messages.length === 0 ? (
           <View className="flex-1">
-            <EmptyState title={`${params.nickname}님과의 첫 대화예요`} subtitle="정성 어린 첫 인사를 건네보세요" />
+            <EmptyState title={t.chat.empty(params.nickname)} subtitle={t.chat.emptySub} />
           </View>
         ) : (
           <MessageList messages={messages} meId={me.id} onEndReached={loadOlder} />
@@ -102,12 +103,13 @@ export default function ChatRoomScreen() {
             className="h-11 flex-1 rounded-full px-4"
             value={draft}
             onChangeText={setDraft}
-            placeholder="메시지 보내기"
+            placeholder={t.chat.placeholder}
+            aria-label={t.chat.placeholder}
             maxLength={1000}
             onSubmitEditing={send}
             submitBehavior="submit"
           />
-          <Button size="icon" aria-label="보내기" disabled={sending} onPress={send}>
+          <Button size="icon" aria-label={t.chat.send} disabled={sending} onPress={send}>
             <Icon as={ArrowUp} />
           </Button>
         </View>
@@ -140,15 +142,15 @@ function MessageList({ messages, meId, onEndReached }: { messages: Message[]; me
         // 최신순이라 i+1이 바로 앞(더 오래된) 메시지, i-1이 바로 뒤 메시지
         const prev = messages[i + 1];
         const next = messages[i - 1];
-        const t = new Date(m.createdAt);
-        const newDay = !prev || daysAgo(new Date(prev.createdAt), t) !== 0;
+        const at = new Date(m.createdAt);
+        const newDay = !prev || daysAgo(new Date(prev.createdAt), at) !== 0;
         const sameGroup = (o?: Message) => !!o && o.senderId === m.senderId && minute(o) === minute(m);
         return (
           <View>
-            {newDay && <DayDivider label={dayLabel(t, now)} />}
+            {newDay && <DayDivider label={dayLabel(at, now)} />}
             {/* 말하는 사람이 바뀌면 넓게, 이어 보낸 묶음은 촘촘하게 */}
             <View className={newDay ? '' : sameGroup(prev) ? 'pt-1' : 'pt-3'}>
-              <ChatBubble body={m.body} mine={m.senderId === meId} time={sameGroup(next) ? undefined : clockLabel(t)} />
+              <ChatBubble body={m.body} mine={m.senderId === meId} time={sameGroup(next) ? undefined : clockLabel(at)} />
             </View>
           </View>
         );
