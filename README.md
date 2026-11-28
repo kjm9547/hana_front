@@ -1,17 +1,16 @@
-# hana
+# Hana – 한일 언어교환 & 여행
 
-A new Flutter project.
+一期一会(이치고 이치에) — 한 번의 만남도 소중한 인연으로. 한국어·일본어 원어민을 잇는 앱입니다.
 
-## Getting Started
+React Native(Expo) + TypeScript. 서버는 [hana_server](https://github.com/kjm9547/hana_server).
 
-This project is a starting point for a Flutter application.
+## 시작하기
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+npm install
+npm run web       # 브라우저 미리보기
+npm run android   # Android 에뮬레이터
+npm run check     # 타입 검사 + 린트 + 단위 테스트
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+서버(`hana_server`)가 3000번 포트에 떠 있어야 합니다. 자세한 구조와 규칙은 [CLAUDE.md](CLAUDE.md), Git 규칙은 [CONTRIBUTING.md](CONTRIBUTING.md).

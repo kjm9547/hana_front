@@ -15,5 +15,5 @@ assignees: ""
 - [ ]
 
 ## 완료 조건
-- [ ] `flutter analyze` 경고 없음
+- [ ] `npm run check` 통과 (타입·린트·테스트)
 - [ ] 동작을 직접 확인함
