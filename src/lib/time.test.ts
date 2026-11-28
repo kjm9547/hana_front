@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { chatTime, clockLabel, dayLabel } from './time';
+import { agoLabel, chatTime, clockLabel, dayLabel } from './time';
 
 // 월은 0부터: new Date(2026, 10, 25) = 2026-11-25
 const now = new Date(2026, 10, 25, 0, 30); // 수요일 자정 직후
@@ -25,5 +25,19 @@ describe('채팅 시간 표시', () => {
     expect(at(new Date(2026, 10, 24, 9))).toBe('어제');
     expect(at(new Date(2026, 2, 1))).toBe('3월 1일');
     expect(at(new Date(2025, 2, 1))).toBe('2025. 3. 1.');
+  });
+});
+
+describe('게시판 시간 표시', () => {
+  const later = new Date(2026, 10, 25, 15, 0);
+  const at = (t: Date) => agoLabel(t.toISOString(), later);
+  test('1분 안은 방금, 1시간 안은 분, 오늘 안은 시간', () => {
+    expect(at(new Date(2026, 10, 25, 14, 59, 30))).toBe('방금');
+    expect(at(new Date(2026, 10, 25, 14, 48))).toBe('12분 전');
+    expect(at(new Date(2026, 10, 25, 12, 0))).toBe('3시간 전');
+  });
+  test('달력이 넘어가면 시간 대신 어제 · 날짜', () => {
+    expect(agoLabel(new Date(2026, 10, 24, 23, 0).toISOString(), now)).toBe('어제'); // 1시간 30분 전이어도 어제
+    expect(at(new Date(2026, 10, 20, 9))).toBe('11월 20일');
   });
 });

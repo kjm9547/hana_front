@@ -29,3 +29,13 @@ export function chatTime(iso: string, now = new Date()) {
     ? `${t.getMonth() + 1}월 ${t.getDate()}일`
     : `${t.getFullYear()}. ${t.getMonth() + 1}. ${t.getDate()}.`;
 }
+
+/** 게시판용: "방금" · "12분 전" · "3시간 전" · "어제" · 그 전은 대화 목록과 같은 날짜 */
+export function agoLabel(iso: string, now = new Date()) {
+  const t = new Date(iso);
+  const minutes = Math.floor((now.getTime() - t.getTime()) / 60_000);
+  if (minutes < 1) return '방금';
+  if (minutes < 60) return `${minutes}분 전`;
+  if (minutes < 24 * 60 && daysAgo(t, now) === 0) return `${Math.floor(minutes / 60)}시간 전`;
+  return chatTime(iso, now);
+}
