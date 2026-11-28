@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { ImagePlus, X } from 'lucide-react-native';
+import { ChevronLeft, ImagePlus, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 
@@ -20,7 +20,7 @@ const MAX_PHOTOS = 10;
 /** 고른 사진: 고르자마자 올리고, 올라가면 서버 id가 생긴다 */
 type Photo = { key: string; uri: string; id?: number };
 
-/** BOARD-04 글쓰기 (모달): 제목 · 본문 · 사진 최대 10장. 올리면 그 글 상세로. */
+/** BOARD-04 글쓰기 (스택 화면): 제목 · 본문 · 사진 최대 10장. 올리면 그 글 상세로. */
 export default function WriteScreen() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -64,8 +64,8 @@ export default function WriteScreen() {
   return (
     <Screen>
       <View className="h-14 flex-row items-center gap-1 pr-page pl-2">
-        <Button variant="ghost" size="icon" aria-label={t.common.close} onPress={() => router.back()}>
-          <Icon as={X} className="size-6 text-foreground" />
+        <Button variant="ghost" size="icon" aria-label={t.post.back} onPress={() => router.back()}>
+          <Icon as={ChevronLeft} className="size-6 text-foreground" />
         </Button>
         <Text variant="strong" className="flex-1 font-bold">
           {t.write.title}
