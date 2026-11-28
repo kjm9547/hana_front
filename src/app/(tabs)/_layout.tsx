@@ -25,6 +25,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: 'shift', // 탭을 바꾸면 살짝 옆으로 밀리며 나타난다
         sceneStyle: { backgroundColor: white },
         tabBarActiveTintColor: primary,
         tabBarInactiveTintColor: grey500,
