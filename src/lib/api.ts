@@ -61,12 +61,21 @@ export async function uploadImage(asset: { uri: string; mimeType?: string; fileN
   return parse<{ id: number; url: string }>(res);
 }
 
+/** 서버가 오류로 답했을 때. 화면에는 status로 고른 번역 문구를 보여 주고(toast.tsx), message(영어)는 개발용 */
+export class ApiError extends Error {
+  readonly status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function parse<T>(res: Response): Promise<T> {
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
   if (!res.ok) {
     const msg = data?.message ?? text;
-    throw new Error(Array.isArray(msg) ? msg.join('\n') : String(msg));
+    throw new ApiError(res.status, Array.isArray(msg) ? msg.join('\n') : String(msg));
   }
   return data;
 }

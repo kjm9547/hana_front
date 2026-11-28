@@ -3,18 +3,20 @@ import { Check, ChevronLeft } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { BackHandler, KeyboardAvoidingView, Platform, View } from 'react-native';
 
+import { deviceLang, t } from '@/i18n';
 import { api, type Lang } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { showError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { Button } from '@/ui/button';
-import { Choice, FieldScreen, langLabel, Mascot, Screen } from '@/ui/hana';
+import { Choice, FieldScreen, Mascot, Screen } from '@/ui/hana';
 import { Icon } from '@/ui/icon';
 import { Input } from '@/ui/input';
 import { Text } from '@/ui/text';
 
 type Gender = 'male' | 'female';
 type Form = { email: string; password: string; nickname: string; lang: Lang | null; gender: Gender | null; y: string; m: string; d: string };
+type Step = keyof typeof t.signup.steps;
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const NICKNAME_MAX = 12;
@@ -26,25 +28,27 @@ function validBirth({ y, m, d }: Form) {
   return D >= 1 && D <= new Date(Y, M, 0).getDate();
 }
 
-/** 단계마다 [질문, 다음으로 넘어갈 수 있는지] */
-const STEPS: [title: string, ok: (f: Form) => boolean][] = [
-  ['이메일을\n알려주세요', (f) => EMAIL.test(f.email)],
-  ['비밀번호를\n정해주세요', (f) => f.password.length >= 8],
-  ['뭐라고\n불러드릴까요?', (f) => f.nickname.trim().length >= 1],
-  ['모국어를\n골라주세요', (f) => f.lang !== null],
-  ['성별을\n골라주세요', (f) => f.gender !== null],
-  ['생년월일을\n알려주세요', validBirth],
-];
+/** 단계마다 다음으로 넘어갈 수 있는지. 순서 = 화면 순서, 질문은 t.signup.steps */
+const OK: Record<Step, (f: Form) => boolean> = {
+  email: (f) => EMAIL.test(f.email),
+  password: (f) => f.password.length >= 8,
+  nickname: (f) => f.nickname.trim().length >= 1,
+  lang: (f) => f.lang !== null,
+  gender: (f) => f.gender !== null,
+  birth: validBirth,
+};
+/** 사용자의 언어는 기기 언어로 정한다. 기기에 한국어·일본어가 없을 때만 언어 단계를 묻는다 */
+const STEPS = (Object.keys(OK) as Step[]).filter((s) => s !== 'lang' || deviceLang === null);
 
 /**
- * AUTH-02 회원가입 퍼널: 한 화면에 질문 하나, 1 이메일 → 2 비밀번호 → 3 닉네임 → 4 모국어 → 5 성별 → 6 생년월일 → 완료.
+ * AUTH-02 회원가입 퍼널: 한 화면에 질문 하나, 이메일 → 비밀번호 → 닉네임 → (언어) → 성별 → 생년월일 → 완료.
  * 진행 막대·단계 숫자 없이 왼쪽 위 뒤로만. 조건을 채우기 전엔 '다음'이 잠긴다. 마지막 단계에서 한 번에 가입.
  */
-// ponytail: 소셜 가입(1·2단계 건너뛰고 닉네임부터)은 서버에 소셜 로그인이 붙을 때.
+// ponytail: 소셜 가입(이메일·비밀번호 건너뛰고 닉네임부터)은 서버에 소셜 로그인이 붙을 때.
 export default function SignUpScreen() {
   const { signIn } = useSession();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<Form>({ email: '', password: '', nickname: '', lang: null, gender: null, y: '', m: '', d: '' });
+  const [form, setForm] = useState<Form>({ email: '', password: '', nickname: '', lang: deviceLang, gender: null, y: '', m: '', d: '' });
   const [busy, setBusy] = useState(false);
   /** 가입이 끝나면 받은 토큰. 완료 화면의 '시작하기'에서 로그인한다 (바로 로그인하면 완료 화면 없이 메인으로 넘어가서) */
   const [token, setToken] = useState<string | null>(null);
@@ -90,7 +94,7 @@ export default function SignUpScreen() {
       <FieldScreen>
         <View className="flex-1 px-page pt-16">
           <Text variant="display" className="text-white">
-            반가워요!
+            {t.signup.welcome}
           </Text>
           <View className="mt-auto mb-3 items-center">
             <Mascot pose="hello" width={280} />
@@ -98,31 +102,32 @@ export default function SignUpScreen() {
         </View>
         <View className="px-page pt-3 pb-5">
           <Button variant="onField" size="lg" onPress={() => signIn(token)}>
-            <Text>시작하기</Text>
+            <Text>{t.signup.start}</Text>
           </Button>
         </View>
       </FieldScreen>
     );
   }
 
-  const [title, ok] = STEPS[step];
+  const key = STEPS[step];
+  const ok = OK[key];
   return (
     <Screen>
       <View className="h-14 justify-center px-2">
-        <Button variant="ghost" size="icon" aria-label="이전" onPress={back}>
+        <Button variant="ghost" size="icon" aria-label={t.signup.back} onPress={back}>
           <Icon as={ChevronLeft} className="size-6 text-foreground" />
         </Button>
       </View>
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View className="flex-1 px-page pt-3">
-          <Text variant="display">{title}</Text>
+          <Text variant="display">{t.signup.steps[key]}</Text>
           <View className="mt-8">
-            <StepInput step={step} form={form} set={set} onSubmit={() => ok(form) && next()} />
+            <StepInput step={key} form={form} set={set} onSubmit={() => ok(form) && next()} />
           </View>
         </View>
         <View className="px-page pt-3 pb-5">
           <Button size="lg" disabled={!ok(form) || busy} onPress={next}>
-            <Text>다음</Text>
+            <Text>{t.signup.next}</Text>
           </Button>
         </View>
       </KeyboardAvoidingView>
@@ -131,16 +136,16 @@ export default function SignUpScreen() {
 }
 
 /** 단계별 입력 */
-function StepInput({ step, form, set, onSubmit }: { step: number; form: Form; set: (p: Partial<Form>) => void; onSubmit: () => void }) {
+function StepInput({ step, form, set, onSubmit }: { step: Step; form: Form; set: (p: Partial<Form>) => void; onSubmit: () => void }) {
   switch (step) {
-    case 0:
+    case 'email':
       return (
         <Input
           key="email"
           value={form.email}
           onChangeText={(email) => set({ email })}
           placeholder="hana@example.com"
-          aria-label="이메일"
+          aria-label={t.auth.email}
           keyboardType="email-address"
           autoCapitalize="none"
           autoComplete="email"
@@ -149,7 +154,7 @@ function StepInput({ step, form, set, onSubmit }: { step: number; form: Form; se
           submitBehavior="submit"
         />
       );
-    case 1: {
+    case 'password': {
       const long = form.password.length >= 8;
       return (
         <>
@@ -157,8 +162,8 @@ function StepInput({ step, form, set, onSubmit }: { step: number; form: Form; se
             key="password"
             value={form.password}
             onChangeText={(password) => set({ password })}
-            placeholder="비밀번호"
-            aria-label="비밀번호"
+            placeholder={t.auth.password}
+            aria-label={t.auth.password}
             secureTextEntry
             autoComplete="new-password"
             autoFocus
@@ -168,21 +173,21 @@ function StepInput({ step, form, set, onSubmit }: { step: number; form: Form; se
           <View className="mt-3 flex-row items-center gap-1">
             <Icon as={Check} className={cn('size-4', long ? 'text-primary-strong' : 'text-grey-500')} />
             <Text variant="caption" className={cn(long && 'text-primary-strong')}>
-              8자 이상
+              {t.signup.passwordRule}
             </Text>
           </View>
         </>
       );
     }
-    case 2:
+    case 'nickname':
       return (
         <>
           <Input
             key="nickname"
             value={form.nickname}
             onChangeText={(nickname) => set({ nickname })}
-            placeholder="닉네임"
-            aria-label="닉네임"
+            placeholder={t.signup.nickname}
+            aria-label={t.signup.nickname}
             maxLength={NICKNAME_MAX}
             autoComplete="nickname"
             autoFocus
@@ -194,35 +199,30 @@ function StepInput({ step, form, set, onSubmit }: { step: number; form: Form; se
           </Text>
         </>
       );
-    case 3:
+    case 'lang':
       return (
         <View className="gap-3" role="radiogroup">
           {(['ko', 'ja'] as const).map((l) => (
-            <Choice key={l} label={langLabel[l]} selected={form.lang === l} onPress={() => set({ lang: l })} />
+            <Choice key={l} label={t.lang[l]} selected={form.lang === l} onPress={() => set({ lang: l })} />
           ))}
         </View>
       );
-    case 4:
+    case 'gender':
       return (
         <View className="gap-3" role="radiogroup">
-          {(
-            [
-              ['male', '남성'],
-              ['female', '여성'],
-            ] as const
-          ).map(([g, label]) => (
-            <Choice key={g} label={label} selected={form.gender === g} onPress={() => set({ gender: g })} />
+          {(['male', 'female'] as const).map((g) => (
+            <Choice key={g} label={t.signup[g]} selected={form.gender === g} onPress={() => set({ gender: g })} />
           ))}
         </View>
       );
-    default:
+    case 'birth':
       return (
         <View className="flex-row gap-2">
           {(
             [
-              ['y', '년', '1998', 4, 'flex-[1.6]'],
-              ['m', '월', '03', 2, 'flex-1'],
-              ['d', '일', '14', 2, 'flex-1'],
+              ['y', t.signup.year, '1998', 4, 'flex-[1.6]'],
+              ['m', t.signup.month, '03', 2, 'flex-1'],
+              ['d', t.signup.day, '14', 2, 'flex-1'],
             ] as const
           ).map(([k, label, hint, max, flex], i) => (
             <View key={k} className={cn('min-w-0 gap-2', flex)}>
