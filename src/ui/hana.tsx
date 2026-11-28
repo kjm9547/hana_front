@@ -1,14 +1,15 @@
 import { Image } from 'expo-image';
-import type { ReactNode } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { type ReactNode, useCallback } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
-import { type Edge, SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
+import { type Edge, SafeAreaView as RNSafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
-import type { Lang, Phrase, User } from '@/lib/api';
+import type { Lang, User } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 import { LookingPenguin } from './looking';
-import { Separator } from './separator';
 import { Text } from './text';
 
 // Hana에서만 쓰는 화면 부품. 버튼·입력 같은 기본 부품은 Reusables(button.tsx, input.tsx …)를 쓴다.
@@ -28,18 +29,68 @@ export function Screen({ children, edges = ['top', 'bottom'] }: { children: Reac
   );
 }
 
-/** 탭 공통 틀: 큰 제목 + 스크롤 본문 (+ 하단 고정 바) */
-export function TabPage({ title, children, bottom }: { title: string; children: ReactNode; bottom?: ReactNode }) {
+// 색 면 화면이 하나라도 보이는 동안 상태 표시줄 글자를 흰색으로.
+// 화면을 옮길 때 focus·blur 순서가 섞여도 맞도록 보이는 색 면 화면 수를 센다.
+let fieldScreens = 0;
+function useLightStatusBar() {
+  useFocusEffect(
+    useCallback(() => {
+      fieldScreens += 1;
+      StatusBar.setStyle('light');
+      return () => {
+        fieldScreens -= 1;
+        if (fieldScreens === 0) StatusBar.setStyle('dark');
+      };
+    }, []),
+  );
+}
+
+/**
+ * 색 면 탭 틀 (개편 방향 A): 위쪽 색 면 헤더에 제목, 아래는 흰 바탕 스크롤 본문.
+ * 헤더 높이는 내용과 상관없이 항상 56 (+ 상태 표시줄). 색 면이 상태 표시줄 뒤까지 채운다.
+ * lead는 제목 왼쪽(프로필 아바타 등, 40 이하), meta는 제목 아래 한 줄, trailing은 오른쪽 끝 행동(아이콘 버튼 44 이하).
+ */
+export function FieldTabPage(props: {
+  lead?: ReactNode;
+  title: string;
+  meta?: string;
+  trailing?: ReactNode;
+  children: ReactNode;
+}) {
+  const insets = useSafeAreaInsets();
+  useLightStatusBar();
   return (
-    <Screen edges={['top']}>
-      <ScrollView contentContainerClassName="px-page pt-4 pb-8">
-        <Text variant="title" className="mb-6">
-          {title}
-        </Text>
-        {children}
+    <View className="flex-1 bg-background">
+      <View className="bg-primary" style={{ paddingTop: insets.top }}>
+        <View className="h-14 w-full max-w-[600px] flex-row items-center gap-3 self-center px-page">
+          {props.lead}
+          <View className="flex-1">
+            <Text variant="title" className="text-white" numberOfLines={1}>
+              {props.title}
+            </Text>
+            {props.meta && (
+              <Text variant="caption" className="text-white" numberOfLines={1}>
+                {props.meta}
+              </Text>
+            )}
+          </View>
+          {props.trailing}
+        </View>
+      </View>
+      <ScrollView className="w-full max-w-[600px] flex-1 self-center" contentContainerClassName="px-page pt-3 pb-8">
+        {props.children}
       </ScrollView>
-      {bottom && <View className="border-t border-border px-page py-3">{bottom}</View>}
-    </Screen>
+    </View>
+  );
+}
+
+/** 순간 화면 틀 (매칭 · 대기 · 성공): 화면 전체가 색 면 + 흰 글자 상태 표시줄 */
+export function FieldScreen({ children, edges = ['top', 'bottom'] }: { children: ReactNode; edges?: Edge[] }) {
+  useLightStatusBar();
+  return (
+    <SafeAreaView edges={edges} className="flex-1 bg-primary">
+      <View className="w-full max-w-[600px] flex-1 self-center">{children}</View>
+    </SafeAreaView>
   );
 }
 
@@ -47,35 +98,18 @@ export function Spinner() {
   return <ActivityIndicator colorClassName="accent-primary" className="mt-20" />;
 }
 
-/** 목록 행 사이 구분선 (아바타 52 + 간격 16만큼 들여쓰기) */
-export const RowDivider = () => <Separator className="ml-17" />;
-
-/** 선택 카드: 선택되면 포인트 테두리 + 옅은 포인트 면 */
-export function ChoiceCard(props: { title: string; subtitle: string; selected: boolean; onPress: () => void }) {
+/** 선택지: 회색 면 한 줄, 선택되면 포인트 면 + 흰 글자 (가입 퍼널의 모국어·성별) */
+export function Choice({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
     <Pressable
       role="radio"
-      aria-checked={props.selected}
-      onPress={props.onPress}
-      className={cn(
-        'flex-1 gap-0.5 rounded-lg border border-border p-4',
-        props.selected && 'border-[1.5px] border-primary bg-primary-soft',
-      )}>
-      <Text variant="body">{props.title}</Text>
-      <Text variant="caption">{props.subtitle}</Text>
-    </Pressable>
-  );
-}
-
-/** 섹션 제목 (+ 오른쪽 보조 정보) */
-export function SectionHeader({ title, trailing }: { title: string; trailing?: string }) {
-  return (
-    <View className="flex-row items-end pt-8 pb-2">
-      <Text variant="section" className="flex-1">
-        {title}
+      aria-checked={selected}
+      onPress={onPress}
+      className={cn('h-14 justify-center rounded-md px-5', selected ? 'bg-primary' : 'bg-grey-100 active:bg-grey-200')}>
+      <Text variant="strong" className={cn(selected && 'text-white')}>
+        {label}
       </Text>
-      {trailing && <Text variant="caption">{trailing}</Text>}
-    </View>
+    </Pressable>
   );
 }
 
@@ -96,11 +130,15 @@ export function Mascot({ pose, width = 96 }: { pose: Pose; width?: number }) {
   return <Image source={mascots[pose]} style={size} contentFit="contain" accessible={false} />;
 }
 
-/** 사진이 생기기 전까지 쓰는 이니셜 아바타. 장식 없이 중립 회색. */
-export function Avatar({ name, size = 52 }: { name: string; size?: number }) {
+/** 사진이 생기기 전까지 쓰는 이니셜 아바타. 중립 회색, 색 면 위(onField)에서는 흰 바탕. */
+export function Avatar({ name, size = 48, onField }: { name: string; size?: number; onField?: boolean }) {
   return (
-    <View className="items-center justify-center rounded-full bg-grey-100" style={{ width: size, height: size }}>
-      <Text className="font-bold text-grey-700" style={{ fontSize: size * 0.38, lineHeight: size * 0.5 }}>
+    <View
+      className={cn('items-center justify-center rounded-full', onField ? 'bg-white' : 'bg-grey-100')}
+      style={{ width: size, height: size }}>
+      <Text
+        className={cn('font-bold', onField ? 'text-primary-strong' : 'text-grey-700')}
+        style={{ fontSize: size * 0.38, lineHeight: size * 0.5 }}>
         {[...name][0]}
       </Text>
     </View>
@@ -112,7 +150,7 @@ export function Avatar({ name, size = 52 }: { name: string; size?: number }) {
 /** 목록 행 공통: 아바타 + 가운데 내용 + 오른쪽(선택). 누르면 옅은 회색. */
 export function ListRow(props: { name: string; children: ReactNode; right?: ReactNode; onPress?: () => void }) {
   return (
-    <Pressable onPress={props.onPress} className="flex-row items-center gap-4 py-3 active:bg-grey-50">
+    <Pressable onPress={props.onPress} className="flex-row items-center gap-3 py-3 active:bg-grey-50">
       <Avatar name={props.name} />
       <View className="flex-1 gap-0.5">{props.children}</View>
       {props.right}
@@ -120,51 +158,19 @@ export function ListRow(props: { name: string; children: ReactNode; right?: Reac
   );
 }
 
-/** 사람 행: 이름 + 모국어 + 자기소개 한 줄 */
+/** 사람 행: 이름 + 자기소개 두 줄까지 */
 export function PersonRow({ person, onPress }: { person: User; onPress?: () => void }) {
   return (
     <ListRow name={person.nickname} onPress={onPress}>
-      <Text variant="body" numberOfLines={1}>
+      <Text variant="strong" numberOfLines={1}>
         {person.nickname}
       </Text>
-      <Text variant="caption">{langLabel[person.nativeLang]} 원어민</Text>
       {person.bio !== '' && (
-        <Text variant="sub" className="mt-0.5" numberOfLines={1}>
+        <Text variant="muted" numberOfLines={2}>
           {person.bio}
         </Text>
       )}
     </ListRow>
-  );
-}
-
-// ───────────────────────── 오늘의 표현 ─────────────────────────
-
-/**
- * 오늘의 일본어 / 今日の韓国語 — Hana의 시그니처 블록. 화면에서 유일하게 색 면을 갖는다.
- * 내가 배우는 언어(모국어의 반대)를 크게, 발음과 뜻을 작게.
- * onDark: 통화 화면처럼 어두운 배경 위에 올릴 때
- */
-export function TodayPhraseCard({ phrase, myLang, onDark }: { phrase: Phrase; myLang: Lang; onDark?: boolean }) {
-  const learnJa = myLang === 'ko';
-  const dim = onDark ? 'text-white/70' : 'text-grey-700';
-  const accent = onDark ? 'text-white' : 'text-phrase';
-  return (
-    <View className={cn('rounded-xl p-6', onDark ? 'bg-white/10' : 'bg-phrase-soft')}>
-      <Text variant="caption" className={dim}>
-        <Text className={cn('font-bold text-caption', accent)}>{learnJa ? '오늘의 일본어' : '今日の韓国語'}</Text>
-        {'  ·  '}
-        {phrase.situation[myLang]}
-      </Text>
-      <Text variant="display" className={cn('mt-3', onDark && 'text-white')}>
-        {learnJa ? phrase.ja : phrase.ko}
-      </Text>
-      <Text variant="sub" className={cn('mt-1 font-semibold', accent)}>
-        {learnJa ? phrase.jaReading : phrase.koReading}
-      </Text>
-      <Text variant="sub" className={cn('mt-2', dim)}>
-        {phrase[myLang]}
-      </Text>
-    </View>
   );
 }
 
@@ -175,10 +181,10 @@ export function EmptyState({ title, subtitle, action }: { title: string; subtitl
   return (
     <View className="items-center gap-2 py-20">
       <Mascot pose="idle" width={120} />
-      <Text variant="section" className="mt-2 text-center">
+      <Text variant="title" className="mt-2 text-center">
         {title}
       </Text>
-      <Text variant="sub" className="text-center">
+      <Text variant="muted" className="text-center">
         {subtitle}
       </Text>
       {action && <View className="mt-4">{action}</View>}
@@ -197,10 +203,10 @@ export function ChatBubble({ body, mine, time }: { body: string; mine: boolean; 
       {mine && stamp}
       <View
         className={cn(
-          'max-w-[280px] shrink rounded-[18px] px-3.5 py-2.5',
-          mine ? 'rounded-br-[4px] bg-primary' : 'rounded-bl-[4px] bg-grey-100',
+          'max-w-[270px] shrink rounded-lg px-3.5 py-3',
+          mine ? 'rounded-br-[6px] bg-primary' : 'rounded-bl-[6px] bg-grey-100',
         )}>
-        <Text variant="sub" className={mine ? 'text-white' : 'text-foreground'}>
+        <Text className={mine ? 'text-white' : 'text-foreground'}>
           {body}
         </Text>
       </View>

@@ -4,8 +4,11 @@
 
 /*
  * Hana 디자인 토큰 — 디자인 시스템의 원본. 바꾸면 디자인 시스템에도 반영한다.
- * - 흰 바탕에 콘텐츠를 바로 올린다. 섹션은 카드가 아니라 여백 + 섹션 제목으로 나눈다.
- * - 포인트 컬러(primary)는 주요 버튼, 선택된 탭, 내 말풍선, 선택 상태에만. 오늘의 표현만 남색(phrase).
+ * 개편 방향 A '색 면 하나' (2026-11-26, 캔버스 hana2.css): 화면마다 스카이 딥 면 하나가 주인공.
+ * - 탭 화면: 위쪽 색 면에 큰 제목 + 그 화면의 행동 하나(흰 버튼)
+ * - 순간 화면(매칭·대기·성공·가입 완료·인연): 화면 전체가 색 면 + 큰 펭귄
+ * - 입력·읽기 화면: 흰 바탕, 색은 버튼 하나
+ * - 레드(destructive)는 위험 동작(로그아웃·통화 종료)에만.
  * - 색·글자는 여기 정의된 이름만 쓴다 (Tailwind 기본 팔레트는 껐다).
  */
 /* static: 클래스에서 안 쓰인 변수도 남겨서 JS(useColor)에서 읽을 수 있게 */
@@ -17,20 +20,24 @@
   --color-transparent: transparent;
 
   --color-grey-50: #f9fafb;
-  --color-grey-100: #f2f4f6;
+  --color-grey-100: #f2f4f6; /* 입력 · 선택지 · 상대 말풍선 · 아바타 */
   --color-grey-200: #e5e8eb;
-  --color-grey-500: #8b95a1;
+  --color-grey-500: #6b7684; /* 메타 글자 (흰 바탕 4.6:1) */
   --color-grey-700: #4e5968;
   --color-grey-900: #191f28;
 
-  /* 포인트 = 펭귄 목도리 레드 (흰 글자 대비 4.6) */
-  --color-primary: #d93a31;
+  /* 포인트 = 스카이 딥 (흰 글자 대비 4.6): 색 면 · 주요 버튼 · 내 말풍선 · 선택 */
+  --color-primary: #0979c5;
   --color-primary-foreground: #ffffff;
-  --color-primary-soft: #fff0ee;
+  --color-primary-strong: #075e99; /* 색 면 위 흰 버튼의 글자 */
+  --color-primary-soft: #dceefb; /* 고쳐 주기 메모 */
 
-  /* 오늘의 표현(시그니처) 전용 남색 (흰 글자 대비 8.6) */
-  --color-phrase: #2340b0;
-  --color-phrase-soft: #ebeffc;
+  /* 랜딩(AUTH-00): 남색 버튼·글자와 소셜 로그인 브랜드 색 */
+  --color-ink: #1e2540;
+  --color-apple: #000000;
+  --color-google-border: #dadce0;
+  --color-line: #06c755;
+  --color-kakao: #fee500;
 
   /* shadcn(Reusables) 컴포넌트가 쓰는 이름 → Hana 값 */
   --color-background: #ffffff;
@@ -42,13 +49,13 @@
   --color-secondary: #f2f4f6;
   --color-secondary-foreground: #191f28;
   --color-muted: #f2f4f6;
-  --color-muted-foreground: #8b95a1;
+  --color-muted-foreground: #6b7684;
   --color-accent: #f2f4f6; /* 눌림·호버 면 */
   --color-accent-foreground: #191f28;
-  --color-destructive: #d93a31; /* 로그아웃 한 곳뿐이라 primary와 같은 색 */
+  --color-destructive: #d93a31; /* 위험 동작 전용 */
   --color-border: #e5e8eb;
-  --color-input: #e5e8eb;
-  --color-ring: #d93a31;
+  --color-input: #f2f4f6;
+  --color-ring: #0979c5;
 
   /* ── 글꼴: 굵기마다 파일이 따로라 굵기 클래스가 글꼴 파일을 고른다 (Android는 fontWeight를 무시함) ── */
   --font-weight-*: initial;
@@ -59,30 +66,28 @@
   --font-semibold: 'Pretendard-SemiBold';
   --font-bold: 'Pretendard-Bold';
 
-  /* ── 글자 크기 6단계 (+ 탭 라벨·말풍선 시간용 tiny) ── */
-  --text-title: 28px; /* 탭 제목 (iOS large title 계열) */
-  --text-title--line-height: 36px;
-  --text-display: 24px; /* 오늘의 표현처럼 가장 크게 보여줄 문장 */
-  --text-display--line-height: 32px;
-  --text-section: 20px; /* 섹션 제목 */
-  --text-section--line-height: 26px;
-  --text-body: 16px; /* 목록의 이름, 본문 강조 */
-  --text-body--line-height: 22px;
-  --text-sub: 14px; /* 설명, 자기소개 */
+  /* ── 글자 단계: 34 · 20 · 16 · 14 · 13 (+ 탭 라벨 tiny). 큰 글씨(display)는 화면당 한 번. sub(14)는 게시판처럼 글이 많은 화면의 본문 ── */
+  --text-display: 34px;
+  --text-display--line-height: 42px;
+  --text-title: 20px;
+  --text-title--line-height: 26px;
+  --text-body: 16px;
+  --text-body--line-height: 23px;
+  --text-sub: 14px;
   --text-sub--line-height: 20px;
-  --text-caption: 13px; /* 메타 정보 (언어, 시간, 개수) */
+  --text-caption: 13px;
   --text-caption--line-height: 18px;
   --text-tiny: 11px;
   --text-tiny--line-height: 14px;
+  --text-wordmark: 80px; /* 랜딩의 'Hana' 한 곳뿐 */
+  --text-wordmark--line-height: 80px;
 
-  /* ── 간격: Tailwind 기본(4px 단위)에 화면 좌우 여백만 이름을 붙인다. px-page = 20 ── */
+  /* ── 간격: 4 · 8 · 12 · 20 · 32 만 쓴다 = Tailwind 1 · 2 · 3 · 5 · 8. 화면 좌우 여백 px-page = 20 ── */
   --spacing-page: 20px;
   --spacing-hairline: hairlineWidth();
 
-  /* ── 모서리 ── */
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 20px;
+  /* ── 모서리 2개: md 14 (버튼 · 입력 · 사진) · lg 20 (말풍선 · 시트) ── */
+  --radius-*: initial;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 }

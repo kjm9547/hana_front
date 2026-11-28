@@ -27,8 +27,8 @@ export function ToastHost() {
     <View pointerEvents="none" className="absolute inset-x-0 bottom-24 items-center px-page">
       <View
         aria-live="polite"
-        className={cn('max-w-[440px] rounded-lg px-4 py-3', toast.error ? 'bg-destructive' : 'bg-grey-900')}>
-        <Text variant="sub" className="text-white">
+        className={cn('max-w-[440px] rounded-md px-4 py-3', toast.error ? 'bg-destructive' : 'bg-grey-900')}>
+        <Text variant="muted" className="text-white">
           {toast.message}
         </Text>
       </View>

@@ -32,11 +32,10 @@ export default function EditBioScreen() {
   return (
     <Screen>
       <View className="flex-1 px-page pt-6">
-        <Text variant="section">자기소개</Text>
-        <Text variant="sub" className="mt-1 mb-4">
-          어떤 언어를, 왜 배우고 있는지 적어보세요
+        <Text variant="title" className="mb-5">
+          자기소개
         </Text>
-        <Textarea value={bio} onChangeText={setBio} autoFocus />
+        <Textarea value={bio} onChangeText={setBio} placeholder="어떤 언어를, 왜 배우고 있는지 적어보세요" autoFocus />
       </View>
       <View className="flex-row gap-2 px-page pb-4">
         <Button variant="secondary" size="lg" className="flex-1" onPress={() => router.back()}>
