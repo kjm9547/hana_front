@@ -4,6 +4,7 @@ import { ArrowUp, ChevronLeft, Heart, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { api, assetUrl, type Conversation, type PostComment, type PostDetail } from '@/lib/api';
 import { openChatRoom } from '@/lib/chat';
 import { useApi, useMe } from '@/lib/session';
@@ -21,10 +22,10 @@ import { useColor } from '@/ui/theme';
 /** 지우기 전에 한 번 묻는다 (웹은 Alert가 없어서 confirm) */
 const confirmDelete = (onYes: () => void) =>
   Platform.OS === 'web'
-    ? window.confirm('이 글을 지울까요?') && onYes()
-    : Alert.alert('이 글을 지울까요?', '댓글과 좋아요도 함께 지워져요', [
-        { text: '취소', style: 'cancel' },
-        { text: '지우기', style: 'destructive', onPress: onYes },
+    ? window.confirm(t.post.confirmDelete) && onYes()
+    : Alert.alert(t.post.confirmDelete, t.post.confirmDeleteSub, [
+        { text: t.common.cancel, style: 'cancel' },
+        { text: t.post.deleteYes, style: 'destructive', onPress: onYes },
       ]);
 
 /** BOARD-03 글 상세: 작성자 · 대화하기 · 본문 · 좋아요 · 댓글. 내 글이면 지우기. */
@@ -85,11 +86,11 @@ export default function PostScreen() {
   return (
     <Screen>
       <View className="h-14 flex-row items-center justify-between px-2">
-        <Button variant="ghost" size="icon" aria-label="게시판으로" onPress={() => router.back()}>
+        <Button variant="ghost" size="icon" aria-label={t.post.back} onPress={() => router.back()}>
           <Icon as={ChevronLeft} className="size-6 text-foreground" />
         </Button>
         {mine && (
-          <Button variant="ghost" size="icon" aria-label="글 지우기" onPress={remove}>
+          <Button variant="ghost" size="icon" aria-label={t.post.delete} onPress={remove}>
             <Icon as={Trash2} className="size-[22px] text-foreground" />
           </Button>
         )}
@@ -112,7 +113,7 @@ export default function PostScreen() {
               </View>
               {!mine && (
                 <Button variant="secondary" onPress={startChat}>
-                  <Text>대화하기</Text>
+                  <Text>{t.post.chat}</Text>
                 </Button>
               )}
             </View>
@@ -128,7 +129,7 @@ export default function PostScreen() {
             <View className="mt-2 flex-row justify-end">
               <Pressable
                 role="button"
-                aria-label={post.likedByMe ? '좋아요 취소' : '좋아요'}
+                aria-label={post.likedByMe ? t.post.unlike : t.post.like}
                 aria-pressed={post.likedByMe}
                 onPress={toggleLike}
                 className="h-11 flex-row items-center gap-1">
@@ -145,7 +146,7 @@ export default function PostScreen() {
             <Separator className="mt-2" />
 
             <Text variant="sub" className="mt-4 font-bold">
-              댓글 {post.commentCount}
+              {t.post.comments(post.commentCount)}
             </Text>
             {post.comments.map((c) => (
               <View key={c.id} className="flex-row gap-2 pt-3">
@@ -169,13 +170,13 @@ export default function PostScreen() {
             className="h-11 flex-1 rounded-full px-4"
             value={draft}
             onChangeText={setDraft}
-            placeholder="댓글 달기"
-            aria-label="댓글"
+            placeholder={t.post.commentPlaceholder}
+            aria-label={t.post.comment}
             maxLength={1000}
             onSubmitEditing={sendComment}
             submitBehavior="submit"
           />
-          <Button size="icon" aria-label="댓글 등록" disabled={sending || !draft.trim()} onPress={sendComment}>
+          <Button size="icon" aria-label={t.post.commentSend} disabled={sending || !draft.trim()} onPress={sendComment}>
             <Icon as={ArrowUp} />
           </Button>
         </View>
@@ -207,7 +208,7 @@ function Photos({ urls, alt }: { urls: string[]; alt: string }) {
               source={assetUrl(u)}
               style={{ width, height }}
               contentFit="cover"
-              accessibilityLabel={`${alt} 사진 ${i + 1}`}
+              accessibilityLabel={t.board.photoN(alt, i + 1)}
             />
           ))}
         </ScrollView>

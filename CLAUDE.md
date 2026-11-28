@@ -6,6 +6,7 @@
 
 - `src/app/` — 화면. 파일 하나 = 화면 하나 (Expo Router). `(tabs)/`는 바텀 탭 5개, `_layout.tsx`가 로그인 여부로 화면을 가른다
 - `src/lib/` — 화면이 아닌 것: `api.ts`(fetch + 서버 응답 타입), `session.tsx`(로그인 상태·`useApi`), `chat.ts`(socket.io 수신), `toast.tsx`, `time.ts`
+- `src/i18n/` — 화면 문구. `ko.ts`(원본) · `ja.ts`(같은 모양) · `index.ts`(기기 언어로 `t` 결정)
 - `src/global.css` — 색·글자·간격·모서리 토큰 (디자인 시스템의 원본). Tailwind v4 문법
 - `src/ui/` — 컴포넌트
   - `button.tsx` `input.tsx` `text.tsx` 등: [React Native Reusables](https://reactnativereusables.com)(shadcn/ui의 RN판)에서 복사해 온 기본 부품. 복사해 온 순간 우리 코드라 Hana에 맞게 고쳐 쓴다
@@ -22,6 +23,12 @@
   - className을 못 받는 색 속성은 `placeholderTextColorClassName="accent-muted-foreground"`처럼 `accent-` 접두사, 그래도 안 되면 `useColor()`
   - 새 기본 부품이 필요하면 `npx @react-native-reusables/cli@latest add <이름> -y --styling-library uniwind` 후 Hana에 맞게 고친다
   - `global.css`에 글자 크기·간격 이름을 추가하면 `src/lib/utils.ts`의 tailwind-merge 설정에도 추가한다
+- 화면에 보이는 글(placeholder·`aria-label`·Alert 포함)은 코드에 직접 쓰지 않고 `t.화면.키`로 쓴다 (`import { t } from '@/i18n'`)
+  - 새 문구는 `ko.ts`에 넣고 `ja.ts`에도 같은 키로 넣는다. 빠지면 타입 검사가 실패한다
+  - 이름·숫자가 들어가면 함수로: `empty: (name: string) => \`${name}님과의 첫 대화예요\``
+  - 화면 언어 = 기기 언어(한국어·일본어 아니면 한국어). 앱 안 언어 바꾸기는 아직 없음 — 넣을 때 `t`를 훅으로 바꾼다
+  - 사용자 언어(API `nativeLang`)는 화면에서 "언어"라고 부른다 ("모국어·원어민" 쓰지 않음)
+  - 서버 오류 문구는 `showError`가 상태 코드로 고른다 (`t.errors.status`). 서버의 영어 메시지를 화면에 띄우지 않는다
 - 서버 응답이 바뀌면 `src/lib/api.ts`의 타입을 같이 고친다
 - 완료 전 `npm run check` (타입 검사 + 린트 + 단위 테스트) 통과
 

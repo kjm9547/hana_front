@@ -7,7 +7,80 @@ export const ko = {
   /** 사용자가 쓰는 언어의 이름 */
   lang: { ko: '한국어', ja: '일본어' },
 
+  common: { close: '닫기', cancel: '취소' },
+
   tabs: { index: '메인', chats: '대화방', match: '랜덤매칭', board: '게시판', profile: '프로필' },
+
+  home: {
+    title: '언어교환 친구',
+    empty: '아직 친구가 없어요',
+    emptySub: '새 친구가 가입하면 여기에 보여요',
+  },
+
+  chats: {
+    empty: '아직 대화가 없어요',
+    emptySub: '메인에서 친구를 골라 첫 인사를 건네보세요',
+    findFriends: '친구 찾기',
+    /** 마지막 메시지가 내 것일 때 앞에 붙인다 */
+    mine: '나: ',
+    noMessage: '첫 인사를 건네보세요',
+  },
+
+  chat: {
+    back: '대화 목록으로',
+    empty: (name: string) => `${name}님과의 첫 대화예요`,
+    emptySub: '정성 어린 첫 인사를 건네보세요',
+    placeholder: '메시지 보내기',
+    send: '보내기',
+  },
+
+  match: {
+    title: '지금 바로\n통화해요',
+    start: '랜덤 통화 시작',
+    waiting: '상대를\n찾고 있어요',
+    stop: '그만 찾기',
+  },
+
+  board: {
+    write: '글쓰기',
+    empty: '아직 글이 없어요',
+    emptySub: '첫 번째 글을 올려보세요',
+    /** 사진 대체 글 (화면 읽기) */
+    photo: (title: string) => `${title} 사진`,
+    photoN: (title: string, n: number) => `${title} 사진 ${n}`,
+  },
+
+  post: {
+    back: '게시판으로',
+    delete: '글 지우기',
+    confirmDelete: '이 글을 지울까요?',
+    confirmDeleteSub: '댓글과 좋아요도 함께 지워져요',
+    deleteYes: '지우기',
+    chat: '대화하기',
+    like: '좋아요',
+    unlike: '좋아요 취소',
+    comments: (n: number) => `댓글 ${n}`,
+    comment: '댓글',
+    commentPlaceholder: '댓글 달기',
+    commentSend: '댓글 등록',
+  },
+
+  write: {
+    title: '글쓰기',
+    submit: '올리기',
+    titlePlaceholder: '제목',
+    body: '내용',
+    bodyPlaceholder: '한국어도 일본어도 괜찮아요',
+    photos: (n: number, max: number) => `사진 ${n} / ${max}`,
+    addPhoto: '사진 추가',
+    removePhoto: (n: number) => `사진 ${n} 빼기`,
+  },
+
+  editBio: {
+    title: '자기소개',
+    placeholder: '어떤 언어를, 왜 배우고 있는지 적어보세요',
+    save: '저장',
+  },
 
   auth: {
     apple: 'Apple로 계속하기',

@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import { api, type Conversation, type Page, type User } from '@/lib/api';
 import { openChatRoom } from '@/lib/chat';
 import { useApi } from '@/lib/session';
@@ -19,11 +20,11 @@ export default function MainTab() {
   };
 
   return (
-    <FieldTabPage title="언어교환 친구">
+    <FieldTabPage title={t.home.title}>
       {!page ? (
         <Spinner />
       ) : page.items.length === 0 ? (
-        <EmptyState title="아직 친구가 없어요" subtitle="새 친구가 가입하면 여기에 보여요" />
+        <EmptyState title={t.home.empty} subtitle={t.home.emptySub} />
       ) : (
         page.items.map((p) => <PersonRow key={p.id} person={p} onPress={() => startChat(p)} />)
       )}

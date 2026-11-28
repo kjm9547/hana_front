@@ -4,7 +4,78 @@ import type { Messages } from './ko';
 export const ja: Messages = {
   lang: { ko: '韓国語', ja: '日本語' },
 
+  common: { close: '閉じる', cancel: 'キャンセル' },
+
   tabs: { index: 'ホーム', chats: 'トーク', match: 'ランダム', board: '掲示板', profile: 'プロフィール' },
+
+  home: {
+    title: '言語交換の友だち',
+    empty: 'まだ友だちがいません',
+    emptySub: '新しい友だちが登録するとここに表示されます',
+  },
+
+  chats: {
+    empty: 'まだトークがありません',
+    emptySub: 'ホームで友だちを選んで、最初のあいさつをしてみましょう',
+    findFriends: '友だちを探す',
+    mine: '自分: ',
+    noMessage: '最初のあいさつをしてみましょう',
+  },
+
+  chat: {
+    back: 'トーク一覧へ',
+    empty: (name) => `${name}さんとの最初のトークです`,
+    emptySub: '心をこめて最初のあいさつをしてみましょう',
+    placeholder: 'メッセージを送る',
+    send: '送信',
+  },
+
+  match: {
+    title: '今すぐ\n通話しよう',
+    start: 'ランダム通話をはじめる',
+    waiting: '相手を\n探しています',
+    stop: '探すのをやめる',
+  },
+
+  board: {
+    write: '投稿する',
+    empty: 'まだ投稿がありません',
+    emptySub: '最初の投稿をしてみましょう',
+    photo: (title) => `${title}の写真`,
+    photoN: (title, n) => `${title}の写真 ${n}`,
+  },
+
+  post: {
+    back: '掲示板へ',
+    delete: '投稿を削除',
+    confirmDelete: 'この投稿を削除しますか？',
+    confirmDeleteSub: 'コメントといいねも一緒に削除されます',
+    deleteYes: '削除',
+    chat: 'トークする',
+    like: 'いいね',
+    unlike: 'いいねを取り消す',
+    comments: (n) => `コメント ${n}`,
+    comment: 'コメント',
+    commentPlaceholder: 'コメントを書く',
+    commentSend: 'コメントを送信',
+  },
+
+  write: {
+    title: '投稿',
+    submit: '投稿する',
+    titlePlaceholder: 'タイトル',
+    body: '本文',
+    bodyPlaceholder: '韓国語でも日本語でも大丈夫です',
+    photos: (n, max) => `写真 ${n} / ${max}`,
+    addPhoto: '写真を追加',
+    removePhoto: (n) => `写真${n}を外す`,
+  },
+
+  editBio: {
+    title: '自己紹介',
+    placeholder: 'どの言語を、なぜ学んでいるのか書いてみましょう',
+    save: '保存',
+  },
 
   auth: {
     apple: 'Appleで続ける',

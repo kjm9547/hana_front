@@ -4,6 +4,7 @@ import { Heart, MessageCircle, SquarePen } from 'lucide-react-native';
 import { Fragment, useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { assetUrl, type Page, type Post } from '@/lib/api';
 import { useApi } from '@/lib/session';
 import { agoLabel } from '@/lib/time';
@@ -26,12 +27,12 @@ export default function BoardTab() {
 
   return (
     <FieldTabPage
-      title="게시판"
+      title={t.tabs.board}
       trailing={
         <Button
           variant="ghost"
           size="icon"
-          aria-label="글쓰기"
+          aria-label={t.board.write}
           className="-mr-2.5 active:bg-white/10"
           onPress={() => router.push('/post/write')}>
           <Icon as={SquarePen} className="size-[22px] text-white" />
@@ -40,7 +41,7 @@ export default function BoardTab() {
       {!page ? (
         <Spinner />
       ) : page.items.length === 0 ? (
-        <EmptyState title="아직 글이 없어요" subtitle="첫 번째 글을 올려보세요" />
+        <EmptyState title={t.board.empty} subtitle={t.board.emptySub} />
       ) : (
         page.items.map((p, i) => (
           <Fragment key={p.id}>
@@ -83,7 +84,7 @@ function PostRow({ post }: { post: Post }) {
               source={assetUrl(post.images[0])}
               style={{ width: '100%', aspectRatio: 16 / 9, borderRadius: 14 }}
               contentFit="cover"
-              accessibilityLabel={`${post.title} 사진`}
+              accessibilityLabel={t.board.photo(post.title)}
             />
             {post.images.length > 1 && (
               <View className="absolute right-3 bottom-3 rounded-[10px] bg-grey-900/60 px-2 py-1">

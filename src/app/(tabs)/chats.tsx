@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 
+import { t } from '@/i18n';
 import type { Conversation } from '@/lib/api';
 import { openChatRoom, useChatEvents } from '@/lib/chat';
 import { useApi, useMe } from '@/lib/session';
@@ -16,16 +17,16 @@ export default function ChatsTab() {
   useChatEvents(reload, reload);
 
   return (
-    <FieldTabPage title="대화방">
+    <FieldTabPage title={t.tabs.chats}>
       {!res ? (
         <Spinner />
       ) : res.items.length === 0 ? (
         <EmptyState
-          title="아직 대화가 없어요"
-          subtitle="메인에서 친구를 골라 첫 인사를 건네보세요"
+          title={t.chats.empty}
+          subtitle={t.chats.emptySub}
           action={
             <Button variant="secondary" onPress={() => router.navigate('/')}>
-              <Text>친구 찾기</Text>
+              <Text>{t.chats.findFriends}</Text>
             </Button>
           }
         />
@@ -42,7 +43,7 @@ export default function ChatsTab() {
                 {c.partner.nickname}
               </Text>
               <Text variant="muted" className={last ? '' : 'text-muted-foreground'} numberOfLines={1}>
-                {last ? `${last.senderId === me.id ? '나: ' : ''}${last.body}` : '첫 인사를 건네보세요'}
+                {last ? `${last.senderId === me.id ? t.chats.mine : ''}${last.body}` : t.chats.noMessage}
               </Text>
             </ListRow>
           );

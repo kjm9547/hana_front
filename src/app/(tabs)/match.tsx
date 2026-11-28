@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 
+import { t } from '@/i18n';
 import { Button } from '@/ui/button';
 import { FieldScreen, Mascot } from '@/ui/hana';
 import { Text } from '@/ui/text';
@@ -12,7 +13,7 @@ export default function MatchTab() {
     <FieldScreen edges={['top']}>
       <View className="flex-1 px-page pt-11">
         <Text variant="display" className="text-white">
-          {'지금 바로\n통화해요'}
+          {t.match.title}
         </Text>
         <View className="absolute right-[-8px] bottom-0">
           <Mascot pose="sideeye" width={280} />
@@ -20,7 +21,7 @@ export default function MatchTab() {
       </View>
       <View className="px-page pt-3 pb-5">
         <Button variant="onField" size="lg" onPress={() => router.push('/match-waiting')}>
-          <Text>랜덤 통화 시작</Text>
+          <Text>{t.match.start}</Text>
         </Button>
       </View>
     </FieldScreen>
